@@ -26,7 +26,8 @@ processors:
 
   # Normalise every agent into the ai_agent.* schema.
   # Block order matters: (1) derive sums from histograms, (2) tag agent + normalise
-  # attributes while original names are still visible, (3) rename metrics.
+  # attributes while original names are still visible, (3) rename metrics,
+  # (4) scrub per-user keys from the resource (after session.id was promoted in 2).
   transform/unify:
     error_mode: ignore
     metric_statements:
@@ -39,6 +40,8 @@ processors:
 
       - context: datapoint
         statements:
+          # Gemini CLI puts session.id on the resource; promote it to the datapoint so every agent carries it uniformly.
+          - set(attributes["session.id"], resource.attributes["session.id"]) where resource.attributes["session.id"] != nil and attributes["session.id"] == nil
           # --- agent detection: metric-name prefix first, gen_ai.* by system/service ---
           - set(attributes["agent"], "claude_code") where IsMatch(metric.name, "^claude_code\\.")
           - set(attributes["agent"], "gemini_cli") where IsMatch(metric.name, "^gemini_cli\\.")
@@ -49,7 +52,8 @@ processors:
           - set(attributes["agent"], "pi") where IsMatch(metric.name, "^gen_ai\\.") and (attributes["gen_ai.system"] == "pi" or resource.attributes["service.name"] == "pi")
           - set(attributes["agent"], "unknown") where attributes["agent"] == nil
           # --- attribute key normalisation ---
-          - set(attributes["type"], attributes["gen_ai.token.type"]) where attributes["gen_ai.token.type"] != nil
+          # Key renames are intentionally metric-agnostic (datapoint level).
+          - set(attributes["type"], attributes["gen_ai.token.type"]) where attributes["gen_ai.token.type"] != nil and attributes["type"] == nil
           - delete_key(attributes, "gen_ai.token.type")
           - set(attributes["model"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil and attributes["model"] == nil
           - delete_key(attributes, "gen_ai.request.model")
@@ -66,6 +70,8 @@ processors:
 
       - context: metric
         statements:
+          # gen_ai.* renames are unconditional: any other semconv-compliant emitter shows up as
+          # agent="unknown" rather than being lost.
           - set(name, "ai_agent.token.usage") where name == "claude_code.token.usage" or name == "gemini_cli.token.usage" or name == "opencode.token.usage" or name == "codex.turn.token_usage_sum" or name == "gen_ai.client.token.usage_sum"
           - set(name, "ai_agent.cost.usage") where name == "claude_code.cost.usage" or name == "opencode.cost.usage" or name == "pi.agent.cost"
           - set(name, "ai_agent.session.count") where name == "claude_code.session.count" or name == "gemini_cli.session.count" or name == "opencode.session.count" or name == "codex.thread.started"
@@ -74,11 +80,29 @@ processors:
           # Units differ per agent ("tokens", "{token}", "USD", ""); Prometheus would turn them
           # into name suffixes. Clear them so every backend yields e.g. ai_agent_token_usage_total.
           - set(unit, "") where IsMatch(name, "^ai_agent\\.")
+          - set(description, "Tokens consumed, by agent/model/type") where name == "ai_agent.token.usage"
+          - set(description, "Cost in USD, by agent/model") where name == "ai_agent.cost.usage"
+          - set(description, "Sessions started, by agent") where name == "ai_agent.session.count"
+          - set(description, "Lines of code added/removed, by agent") where name == "ai_agent.lines_of_code.count"
+          - set(description, "Tool invocations, by agent/tool_name") where name == "ai_agent.tool.call.count"
 
-  # High-cardinality per-session / per-user attributes must not become Prometheus labels.
+      # Per-user keys must never surface via target_info. session.id is removed from the
+      # resource only here, after the datapoint block above has copied it to the datapoints.
+      - context: resource
+        statements:
+          - delete_key(attributes, "session.id")
+          - delete_key(attributes, "installation.id")
+          - delete_key(attributes, "user.id")
+          - delete_key(attributes, "user.email")
+          - delete_key(attributes, "user.account_uuid")
+          - delete_key(attributes, "user.account_id")
+          - delete_key(attributes, "organization.id")
+
+  # High-cardinality per-user attributes must not become Prometheus labels.
+  # session.id is deliberately KEPT: the agents' counters are cumulative per session and
+  # would collide across concurrent sessions of the same agent without it.
   attributes/cardinality:
     actions:
-      - { key: session.id, action: delete }
       - { key: user.id, action: delete }
       - { key: user.email, action: delete }
       - { key: user.account_uuid, action: delete }
@@ -90,13 +114,14 @@ processors:
       - { key: app.entrypoint, action: delete }
 
   # Prometheus needs cumulative temporality; some SDKs export delta.
-  deltatocumulative:
+  delta_to_cumulative:
     max_stale: 10m
+    max_streams: 10000
 
   batch: {}
 
 exporters:
-  otlphttp/lgtm:
+  otlp_http/lgtm:
     endpoint: http://otel-lgtm:4318
     tls:
       insecure: true
@@ -113,13 +138,13 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, filter/dedupe, transform/unify, attributes/cardinality, deltatocumulative, batch]
-      exporters: [otlphttp/lgtm, prometheus, debug]
+      processors: [memory_limiter, filter/dedupe, transform/unify, attributes/cardinality, delta_to_cumulative, batch]
+      exporters: [otlp_http/lgtm, prometheus, debug]
     logs:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlphttp/lgtm]
+      exporters: [otlp_http/lgtm]
     traces:
       receivers: [otlp]
       processors: [memory_limiter, batch]
-      exporters: [otlphttp/lgtm]
+      exporters: [otlp_http/lgtm]

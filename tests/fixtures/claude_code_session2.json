@@ -1,0 +1,29 @@
+{
+  "resourceMetrics": [{
+    "resource": {"attributes": [
+      {"key": "service.name", "value": {"stringValue": "claude-code"}},
+      {"key": "service.version", "value": {"stringValue": "2.1.0"}}
+    ]},
+    "scopeMetrics": [{
+      "scope": {"name": "com.anthropic.claude_code"},
+      "metrics": [
+        {"name": "claude_code.token.usage", "unit": "tokens", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "type", "value": {"stringValue": "input"}}, {"key": "model", "value": {"stringValue": "claude-opus-5"}}, {"key": "session.id", "value": {"stringValue": "sess-cc-2"}}, {"key": "user.email", "value": {"stringValue": "dev@example.com"}}, {"key": "user.account_uuid", "value": {"stringValue": "acc-1"}}, {"key": "organization.id", "value": {"stringValue": "org-1"}}, {"key": "terminal.type", "value": {"stringValue": "vscode"}}, {"key": "router", "value": {"stringValue": "ccr"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "100"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "output"}}, {"key": "model", "value": {"stringValue": "claude-opus-5"}}, {"key": "session.id", "value": {"stringValue": "sess-cc-2"}}, {"key": "router", "value": {"stringValue": "ccr"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "20"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "cacheRead"}}, {"key": "model", "value": {"stringValue": "claude-opus-5"}}, {"key": "session.id", "value": {"stringValue": "sess-cc-2"}}, {"key": "router", "value": {"stringValue": "ccr"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "500"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "cacheCreation"}}, {"key": "model", "value": {"stringValue": "claude-opus-5"}}, {"key": "session.id", "value": {"stringValue": "sess-cc-2"}}, {"key": "router", "value": {"stringValue": "ccr"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "50"}
+        ]}},
+        {"name": "claude_code.cost.usage", "unit": "USD", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "model", "value": {"stringValue": "claude-opus-5"}}, {"key": "session.id", "value": {"stringValue": "sess-cc-2"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asDouble": 0.05}
+        ]}},
+        {"name": "claude_code.session.count", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "start_type", "value": {"stringValue": "fresh"}}, {"key": "session.id", "value": {"stringValue": "sess-cc-2"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "1"}
+        ]}},
+        {"name": "claude_code.lines_of_code.count", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "type", "value": {"stringValue": "added"}}, {"key": "model", "value": {"stringValue": "claude-opus-5"}}, {"key": "session.id", "value": {"stringValue": "sess-cc-2"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "4"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "removed"}}, {"key": "model", "value": {"stringValue": "claude-opus-5"}}, {"key": "session.id", "value": {"stringValue": "sess-cc-2"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "1"}
+        ]}}
+      ]
+    }]
+  }]
+}
