@@ -61,7 +61,7 @@
     {"type": "timeseries", "id": 5, "title": "Token rate by agent", "gridPos": {"h": 8, "w": 10, "x": 0, "y": 6},
      "datasource": {"type": "prometheus", "uid": "prometheus"},
      "targets": [{"refId": "A", "expr": "sum by (agent) (rate(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval]))", "legendFormat": "{{agent}}"}],
-     "fieldConfig": {"defaults": {"unit": "short", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "never", "gradientMode": "none"}},
+     "fieldConfig": {"defaults": {"unit": "short", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
        "overrides": [
          {"matcher": {"id": "byName", "options": "claude_code"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
          {"matcher": {"id": "byName", "options": "gemini_cli"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
@@ -76,7 +76,7 @@
     {"type": "timeseries", "id": 6, "title": "Token rate by type", "gridPos": {"h": 8, "w": 8, "x": 10, "y": 6},
      "datasource": {"type": "prometheus", "uid": "prometheus"},
      "targets": [{"refId": "A", "expr": "sum by (type) (rate(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval]))", "legendFormat": "{{type}}"}],
-     "fieldConfig": {"defaults": {"unit": "short", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "never", "gradientMode": "none"}},
+     "fieldConfig": {"defaults": {"unit": "short", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
        "overrides": [
          {"matcher": {"id": "byName", "options": "input"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
          {"matcher": {"id": "byName", "options": "output"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
@@ -98,7 +98,7 @@
     {"type": "timeseries", "id": 8, "title": "Cost per hour by agent (USD/h)", "gridPos": {"h": 8, "w": 10, "x": 0, "y": 15},
      "datasource": {"type": "prometheus", "uid": "prometheus"},
      "targets": [{"refId": "A", "expr": "sum by (agent) (rate(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval])) * 3600", "legendFormat": "{{agent}}"}],
-     "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 2, "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "never", "gradientMode": "none"}},
+     "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 2, "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
        "overrides": [
          {"matcher": {"id": "byName", "options": "claude_code"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
          {"matcher": {"id": "byName", "options": "gemini_cli"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
@@ -125,7 +125,7 @@
     {"type": "timeseries", "id": 11, "title": "Sessions started by agent", "gridPos": {"h": 8, "w": 8, "x": 0, "y": 24},
      "datasource": {"type": "prometheus", "uid": "prometheus"},
      "targets": [{"refId": "A", "expr": "sum by (agent) (increase(ai_agent_session_count_total{agent=~\"$agent\"}[$__rate_interval]))", "legendFormat": "{{agent}}"}],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "never", "gradientMode": "none"}},
+     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
        "overrides": [
          {"matcher": {"id": "byName", "options": "claude_code"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
          {"matcher": {"id": "byName", "options": "gemini_cli"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
@@ -140,7 +140,7 @@
     {"type": "timeseries", "id": 12, "title": "Lines of code by agent", "gridPos": {"h": 8, "w": 8, "x": 8, "y": 24},
      "datasource": {"type": "prometheus", "uid": "prometheus"},
      "targets": [{"refId": "A", "expr": "sum by (agent, type) (increase(ai_agent_lines_of_code_count_total{agent=~\"$agent\"}[$__rate_interval]))", "legendFormat": "{{agent}} {{type}}"}],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "stacking": {"mode": "none", "group": "A"}, "showPoints": "never", "gradientMode": "none"}},
+     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "stacking": {"mode": "none", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
        "overrides": [
          {"matcher": {"id": "byRegexp", "options": "^claude_code .*"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
          {"matcher": {"id": "byRegexp", "options": "^gemini_cli .*"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
