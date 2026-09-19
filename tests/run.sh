@@ -37,7 +37,7 @@ docker compose run --rm --no-deps otel-collector validate --config=/etc/otelcol-
 ok "configs valid"
 
 echo "# 2. boot stack"
-docker compose up -d
+docker compose up -d || die "compose up failed"
 for _ in $(seq 1 90); do
   if curl -fsS "$HEALTH" >/dev/null 2>&1 && curl -fsS "$GRAFANA/api/health" >/dev/null 2>&1; then break; fi
   sleep 2
@@ -66,7 +66,7 @@ echo "# 4. assertions on :8889/metrics"
 OUT="$(curl -fsS "$PROM")" || die "cannot scrape :8889"
 expect() { if grep -qE "$1" <<<"$OUT"; then ok "$2"; else fail "$2  (pattern: $1)"; fi; }
 reject() { if grep -qE "$1" <<<"$OUT"; then fail "$2  (pattern: $1)"; else ok "$2"; fi; }
-L='[^}]*'   # any run of labels before the one we care about (stays inside one {...} block)
+L='[^}]*'   # any run of labels before the one we care about (stays inside one {...} block); labels are emitted in alphabetical order, so chains must follow that order
 
 # unified token counter per agent, with normalised type values
 for a in claude_code gemini_cli codex opencode pi; do

@@ -4,8 +4,11 @@ services:
     restart: unless-stopped
     ports:
       - "3000:3000"   # Grafana (anonymous admin enabled by the image)
+    environment:
+      GF_DASHBOARDS_DEFAULT_HOME_DASHBOARD_PATH: /otel-lgtm/grafana/conf/provisioning/dashboards/custom/ai-agents.json
     volumes:
       - ./grafana/provisioning/dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/ai-agents.yaml:ro
+      - ./grafana/dashboards/ai-agents.json:/otel-lgtm/grafana/conf/provisioning/dashboards/custom/ai-agents.json:ro
       - lgtm-data:/data
     # The image declares its own HEALTHCHECK (Grafana, Loki, Tempo, Prometheus, internal collector).
 
