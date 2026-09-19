@@ -55,7 +55,7 @@ echo "# 4. assertions on :8889/metrics"
 OUT="$(curl -fsS "$PROM")"
 expect() { if echo "$OUT" | grep -qE "$1"; then ok "$2"; else fail "$2  (pattern: $1)"; fi; }
 reject() { if echo "$OUT" | grep -qE "$1"; then fail "$2  (pattern: $1)"; else ok "$2"; fi; }
-L='\{[^}]*'   # label-block prefix, any labels before
+L='[^}]*'   # any run of labels before the one we care about (stays inside one {...} block)
 
 # unified token counter per agent, with normalised type values
 for a in claude_code gemini_cli codex opencode pi; do

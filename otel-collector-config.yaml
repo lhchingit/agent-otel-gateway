@@ -15,6 +15,84 @@ processors:
     check_interval: 1s
     limit_mib: 512
     spike_limit_mib: 128
+
+  # Gemini CLI emits both gemini_cli.token.usage and the semconv gen_ai.client.token.usage
+  # for the same tokens; keep the former, drop the latter so nothing is counted twice.
+  filter/dedupe:
+    error_mode: ignore
+    metrics:
+      metric:
+        - 'name == "gen_ai.client.token.usage" and resource.attributes["service.name"] == "gemini-cli"'
+
+  # Normalise every agent into the ai_agent.* schema.
+  # Block order matters: (1) derive sums from histograms, (2) tag agent + normalise
+  # attributes while original names are still visible, (3) rename metrics.
+  transform/unify:
+    error_mode: ignore
+    metric_statements:
+      - context: metric
+        statements:
+          # Codex and pi-otel report tokens as histograms; extract_sum_metric(true)
+          # appends a monotonic Sum named "<name>_sum" (originals are kept).
+          - extract_sum_metric(true) where name == "codex.turn.token_usage"
+          - extract_sum_metric(true) where name == "gen_ai.client.token.usage"
+
+      - context: datapoint
+        statements:
+          # --- agent detection: metric-name prefix first, gen_ai.* by system/service ---
+          - set(attributes["agent"], "claude_code") where IsMatch(metric.name, "^claude_code\\.")
+          - set(attributes["agent"], "gemini_cli") where IsMatch(metric.name, "^gemini_cli\\.")
+          - set(attributes["agent"], "codex") where IsMatch(metric.name, "^codex\\.")
+          - set(attributes["agent"], "opencode") where IsMatch(metric.name, "^opencode\\.")
+          - set(attributes["agent"], "pi") where IsMatch(metric.name, "^pi\\.")
+          - set(attributes["agent"], "antigravity") where IsMatch(metric.name, "^agy\\.")
+          - set(attributes["agent"], "pi") where IsMatch(metric.name, "^gen_ai\\.") and (attributes["gen_ai.system"] == "pi" or resource.attributes["service.name"] == "pi")
+          - set(attributes["agent"], "unknown") where attributes["agent"] == nil
+          # --- attribute key normalisation ---
+          - set(attributes["type"], attributes["gen_ai.token.type"]) where attributes["gen_ai.token.type"] != nil
+          - delete_key(attributes, "gen_ai.token.type")
+          - set(attributes["model"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil and attributes["model"] == nil
+          - delete_key(attributes, "gen_ai.request.model")
+          - set(attributes["tool_name"], attributes["function_name"]) where attributes["function_name"] != nil
+          - delete_key(attributes, "function_name")
+          - set(attributes["tool_name"], attributes["tool.name"]) where attributes["tool.name"] != nil
+          - delete_key(attributes, "tool.name")
+          - set(attributes["tool_name"], attributes["gen_ai.tool.name"]) where attributes["gen_ai.tool.name"] != nil
+          - delete_key(attributes, "gen_ai.tool.name")
+          # --- token type value normalisation ---
+          - set(attributes["type"], "cache_read") where attributes["type"] == "cacheRead" or attributes["type"] == "cached" or attributes["type"] == "cache"
+          - set(attributes["type"], "cache_write") where attributes["type"] == "cacheCreation"
+          - set(attributes["type"], "reasoning") where attributes["type"] == "thought"
+
+      - context: metric
+        statements:
+          - set(name, "ai_agent.token.usage") where name == "claude_code.token.usage" or name == "gemini_cli.token.usage" or name == "opencode.token.usage" or name == "codex.turn.token_usage_sum" or name == "gen_ai.client.token.usage_sum"
+          - set(name, "ai_agent.cost.usage") where name == "claude_code.cost.usage" or name == "opencode.cost.usage" or name == "pi.agent.cost"
+          - set(name, "ai_agent.session.count") where name == "claude_code.session.count" or name == "gemini_cli.session.count" or name == "opencode.session.count" or name == "codex.thread.started"
+          - set(name, "ai_agent.lines_of_code.count") where name == "claude_code.lines_of_code.count" or name == "gemini_cli.lines.changed" or name == "opencode.lines_of_code.count"
+          - set(name, "ai_agent.tool.call.count") where name == "gemini_cli.tool.call.count" or name == "codex.tool.call" or name == "gen_ai.client.tool.calls"
+          # Units differ per agent ("tokens", "{token}", "USD", ""); Prometheus would turn them
+          # into name suffixes. Clear them so every backend yields e.g. ai_agent_token_usage_total.
+          - set(unit, "") where IsMatch(name, "^ai_agent\\.")
+
+  # High-cardinality per-session / per-user attributes must not become Prometheus labels.
+  attributes/cardinality:
+    actions:
+      - { key: session.id, action: delete }
+      - { key: user.id, action: delete }
+      - { key: user.email, action: delete }
+      - { key: user.account_uuid, action: delete }
+      - { key: user.account_id, action: delete }
+      - { key: organization.id, action: delete }
+      - { key: terminal.type, action: delete }
+      - { key: prompt.id, action: delete }
+      - { key: installation.id, action: delete }
+      - { key: app.entrypoint, action: delete }
+
+  # Prometheus needs cumulative temporality; some SDKs export delta.
+  deltatocumulative:
+    max_stale: 10m
+
   batch: {}
 
 exporters:
@@ -35,7 +113,7 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, filter/dedupe, transform/unify, attributes/cardinality, deltatocumulative, batch]
       exporters: [otlphttp/lgtm, prometheus, debug]
     logs:
       receivers: [otlp]
