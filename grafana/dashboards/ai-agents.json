@@ -1,184 +1,1425 @@
 {
   "uid": "ai-agents",
   "title": "AI Agents",
-  "tags": ["ai-agents", "otel"],
+  "tags": [
+    "ai-agents",
+    "otel"
+  ],
   "timezone": "browser",
   "editable": true,
   "graphTooltip": 1,
   "refresh": "30s",
   "schemaVersion": 39,
   "version": 1,
-  "time": {"from": "now-24h", "to": "now"},
+  "time": {
+    "from": "now-24h",
+    "to": "now"
+  },
   "templating": {
     "list": [
       {
-        "name": "agent", "label": "Agent", "type": "query",
-        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "name": "agent",
+        "label": "Agent",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "definition": "label_values(ai_agent_token_usage_total, agent)",
-        "query": {"query": "label_values(ai_agent_token_usage_total, agent)", "refId": "agent"},
-        "multi": true, "includeAll": true, "allValue": ".*", "refresh": 2, "sort": 1,
-        "current": {"selected": true, "text": ["All"], "value": ["$__all"]}
+        "query": {
+          "query": "label_values(ai_agent_token_usage_total, agent)",
+          "refId": "agent"
+        },
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "refresh": 2,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
       },
       {
-        "name": "model", "label": "Model", "type": "query",
-        "datasource": {"type": "prometheus", "uid": "prometheus"},
+        "name": "model",
+        "label": "Model",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
         "definition": "label_values(ai_agent_token_usage_total{agent=~\"$agent\"}, model)",
-        "query": {"query": "label_values(ai_agent_token_usage_total{agent=~\"$agent\"}, model)", "refId": "model"},
-        "multi": true, "includeAll": true, "allValue": ".*", "refresh": 2, "sort": 1,
-        "current": {"selected": true, "text": ["All"], "value": ["$__all"]}
+        "query": {
+          "query": "label_values(ai_agent_token_usage_total{agent=~\"$agent\"}, model)",
+          "refId": "model"
+        },
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "refresh": 2,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
       }
     ]
   },
   "panels": [
-    {"type": "row", "id": 100, "title": "Overview", "collapsed": false, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 0}, "panels": []},
-
-    {"type": "stat", "id": 1, "title": "Tokens (24h)", "gridPos": {"h": 4, "w": 6, "x": 0, "y": 1},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum(increase(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"}],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "color": {"mode": "fixed", "fixedColor": "#3987e5"}}, "overrides": []},
-     "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "none", "graphMode": "none", "textMode": "value"}},
-
-    {"type": "stat", "id": 2, "title": "Cost USD (24h)", "gridPos": {"h": 4, "w": 6, "x": 6, "y": 1},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum(increase(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"}],
-     "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 2, "color": {"mode": "fixed", "fixedColor": "#3987e5"}}, "overrides": []},
-     "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "none", "graphMode": "none", "textMode": "value"}},
-
-    {"type": "stat", "id": 3, "title": "Sessions (24h)", "gridPos": {"h": 4, "w": 6, "x": 12, "y": 1},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum(increase(ai_agent_session_count_total{agent=~\"$agent\"}[24h]))"}],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "color": {"mode": "fixed", "fixedColor": "#3987e5"}}, "overrides": []},
-     "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "none", "graphMode": "none", "textMode": "value"}},
-
-    {"type": "stat", "id": 4, "title": "Agents with token data", "gridPos": {"h": 4, "w": 6, "x": 18, "y": 1},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "count(count by (agent) (ai_agent_token_usage_total{agent=~\"$agent\"}))"}],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "color": {"mode": "fixed", "fixedColor": "#3987e5"}}, "overrides": []},
-     "options": {"reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "colorMode": "none", "graphMode": "none", "textMode": "value"}},
-
-    {"type": "row", "id": 101, "title": "Tokens", "collapsed": false, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 5}, "panels": []},
-
-    {"type": "timeseries", "id": 5, "title": "Token rate by agent", "gridPos": {"h": 8, "w": 10, "x": 0, "y": 6},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum by (agent) (rate(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval]))", "legendFormat": "{{agent}}"}],
-     "fieldConfig": {"defaults": {"unit": "short", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
-       "overrides": [
-         {"matcher": {"id": "byName", "options": "claude_code"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
-         {"matcher": {"id": "byName", "options": "gemini_cli"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
-         {"matcher": {"id": "byName", "options": "codex"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#199e70"}}]},
-         {"matcher": {"id": "byName", "options": "opencode"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#c98500"}}]},
-         {"matcher": {"id": "byName", "options": "pi"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d55181"}}]},
-         {"matcher": {"id": "byName", "options": "antigravity"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#008300"}}]},
-         {"matcher": {"id": "byName", "options": "unknown"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#8e8e8e"}}]}
-       ]},
-     "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}}},
-
-    {"type": "timeseries", "id": 6, "title": "Token rate by type", "gridPos": {"h": 8, "w": 8, "x": 10, "y": 6},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum by (type) (rate(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval]))", "legendFormat": "{{type}}"}],
-     "fieldConfig": {"defaults": {"unit": "short", "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
-       "overrides": [
-         {"matcher": {"id": "byName", "options": "input"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
-         {"matcher": {"id": "byName", "options": "output"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
-         {"matcher": {"id": "byName", "options": "cache_read"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#199e70"}}]},
-         {"matcher": {"id": "byName", "options": "cache_write"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#c98500"}}]},
-         {"matcher": {"id": "byName", "options": "reasoning"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d55181"}}]},
-         {"matcher": {"id": "byName", "options": "tool"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#008300"}}]}
-       ]},
-     "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}}},
-
-    {"type": "piechart", "id": 7, "title": "Tokens by model (range)", "gridPos": {"h": 8, "w": 6, "x": 18, "y": 6},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum by (model) (increase(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))", "legendFormat": "{{model}}", "instant": true}],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0}, "overrides": []},
-     "options": {"pieType": "donut", "displayLabels": ["percent"], "legend": {"displayMode": "list", "placement": "right", "showLegend": true, "values": ["value"]}, "reduceOptions": {"calcs": ["lastNotNull"], "fields": "", "values": false}, "tooltip": {"mode": "single"}}},
-
-    {"type": "row", "id": 102, "title": "Cost", "collapsed": false, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 14}, "panels": []},
-
-    {"type": "timeseries", "id": 8, "title": "Cost per hour by agent (USD/h)", "gridPos": {"h": 8, "w": 10, "x": 0, "y": 15},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum by (agent) (rate(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval])) * 3600", "legendFormat": "{{agent}}"}],
-     "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 2, "custom": {"drawStyle": "line", "lineWidth": 2, "fillOpacity": 25, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
-       "overrides": [
-         {"matcher": {"id": "byName", "options": "claude_code"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
-         {"matcher": {"id": "byName", "options": "gemini_cli"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
-         {"matcher": {"id": "byName", "options": "codex"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#199e70"}}]},
-         {"matcher": {"id": "byName", "options": "opencode"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#c98500"}}]},
-         {"matcher": {"id": "byName", "options": "pi"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d55181"}}]},
-         {"matcher": {"id": "byName", "options": "antigravity"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#008300"}}]},
-         {"matcher": {"id": "byName", "options": "unknown"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#8e8e8e"}}]}
-       ]},
-     "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}}},
-
-    {"type": "barchart", "id": 9, "title": "Cost by model (range)", "gridPos": {"h": 8, "w": 8, "x": 10, "y": 15},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum by (model) (increase(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))", "legendFormat": "{{model}}", "instant": true, "format": "table"}],
-     "transformations": [{"id": "organize", "options": {"excludeByName": {"Time": true}, "renameByName": {"Value": "USD"}}}],
-     "fieldConfig": {"defaults": {"unit": "currencyUSD", "decimals": 2, "color": {"mode": "fixed", "fixedColor": "#3987e5"}, "custom": {"lineWidth": 1, "fillOpacity": 80}}, "overrides": []},
-     "options": {"orientation": "horizontal", "xField": "model", "showValue": "auto", "barWidth": 0.7, "groupWidth": 0.7, "legend": {"showLegend": false, "displayMode": "list", "placement": "bottom"}, "tooltip": {"mode": "single"}}},
-
-    {"type": "text", "id": 10, "title": "About cost", "gridPos": {"h": 8, "w": 6, "x": 18, "y": 15},
-     "options": {"mode": "markdown", "content": "**Cost is reported only by** Claude Code, OpenCode and Pi (`@damngamerz/pi-otel`).\n\nGemini CLI, Codex and Antigravity do not export a cost metric, so they never appear in the cost panels. Compare them by tokens instead.\n\nSeries colours are fixed per agent: claude_code blue, gemini_cli orange, codex aqua, opencode yellow, pi magenta, antigravity green."}},
-
-    {"type": "row", "id": 103, "title": "Activity", "collapsed": false, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 23}, "panels": []},
-
-    {"type": "timeseries", "id": 11, "title": "Sessions started by agent", "gridPos": {"h": 8, "w": 8, "x": 0, "y": 24},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum by (agent) (increase(ai_agent_session_count_total{agent=~\"$agent\"}[$__rate_interval]))", "legendFormat": "{{agent}}"}],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "stacking": {"mode": "normal", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
-       "overrides": [
-         {"matcher": {"id": "byName", "options": "claude_code"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
-         {"matcher": {"id": "byName", "options": "gemini_cli"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
-         {"matcher": {"id": "byName", "options": "codex"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#199e70"}}]},
-         {"matcher": {"id": "byName", "options": "opencode"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#c98500"}}]},
-         {"matcher": {"id": "byName", "options": "pi"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d55181"}}]},
-         {"matcher": {"id": "byName", "options": "antigravity"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#008300"}}]},
-         {"matcher": {"id": "byName", "options": "unknown"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#8e8e8e"}}]}
-       ]},
-     "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}}},
-
-    {"type": "timeseries", "id": 12, "title": "Lines of code by agent", "gridPos": {"h": 8, "w": 8, "x": 8, "y": 24},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "sum by (agent, type) (increase(ai_agent_lines_of_code_count_total{agent=~\"$agent\"}[$__rate_interval]))", "legendFormat": "{{agent}} {{type}}"}],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0, "custom": {"drawStyle": "bars", "lineWidth": 1, "fillOpacity": 80, "stacking": {"mode": "none", "group": "A"}, "showPoints": "auto", "gradientMode": "none"}},
-       "overrides": [
-         {"matcher": {"id": "byRegexp", "options": "^claude_code .*"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#3987e5"}}]},
-         {"matcher": {"id": "byRegexp", "options": "^gemini_cli .*"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d95926"}}]},
-         {"matcher": {"id": "byRegexp", "options": "^codex .*"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#199e70"}}]},
-         {"matcher": {"id": "byRegexp", "options": "^opencode .*"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#c98500"}}]},
-         {"matcher": {"id": "byRegexp", "options": "^pi .*"}, "properties": [{"id": "color", "value": {"mode": "fixed", "fixedColor": "#d55181"}}]},
-         {"matcher": {"id": "byRegexp", "options": ".* removed$"}, "properties": [{"id": "custom.fillOpacity", "value": 30}, {"id": "custom.transform", "value": "negative-Y"}]}
-       ]},
-     "options": {"legend": {"displayMode": "list", "placement": "bottom", "showLegend": true}, "tooltip": {"mode": "multi", "sort": "desc"}}},
-
-    {"type": "table", "id": 13, "title": "Tool calls top 10 (range)", "gridPos": {"h": 8, "w": 8, "x": 16, "y": 24},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [{"refId": "A", "expr": "topk(10, sum by (agent, tool_name) (increase(ai_agent_tool_call_count_total{agent=~\"$agent\"}[$__range])))", "instant": true, "format": "table"}],
-     "transformations": [{"id": "organize", "options": {"excludeByName": {"Time": true}, "renameByName": {"Value": "Calls", "agent": "Agent", "tool_name": "Tool"}}}, {"id": "sortBy", "options": {"sort": [{"field": "Calls", "desc": true}]}}],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0}, "overrides": []},
-     "options": {"showHeader": true, "cellHeight": "sm"}},
-
-    {"type": "row", "id": 104, "title": "Detail", "collapsed": false, "gridPos": {"h": 1, "w": 24, "x": 0, "y": 32}, "panels": []},
-
-    {"type": "table", "id": 14, "title": "Per agent (range)", "gridPos": {"h": 8, "w": 24, "x": 0, "y": 33},
-     "datasource": {"type": "prometheus", "uid": "prometheus"},
-     "targets": [
-       {"refId": "A", "expr": "sum by (agent) (increase(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))", "instant": true, "format": "table"},
-       {"refId": "B", "expr": "sum by (agent) (increase(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))", "instant": true, "format": "table"},
-       {"refId": "C", "expr": "sum by (agent) (increase(ai_agent_session_count_total{agent=~\"$agent\"}[$__range]))", "instant": true, "format": "table"},
-       {"refId": "D", "expr": "max by (agent) (timestamp(ai_agent_token_usage_total{agent=~\"$agent\"})) * 1000", "instant": true, "format": "table"}
-     ],
-     "transformations": [
-       {"id": "joinByField", "options": {"byField": "agent", "mode": "outer"}},
-       {"id": "organize", "options": {
-         "excludeByName": {"Time": true, "Time 1": true, "Time 2": true, "Time 3": true, "Time 4": true},
-         "renameByName": {"agent": "Agent", "Value #A": "Tokens", "Value #B": "Cost (USD)", "Value #C": "Sessions", "Value #D": "Last seen"},
-         "indexByName": {"agent": 0, "Value #A": 1, "Value #B": 2, "Value #C": 3, "Value #D": 4}}}
-     ],
-     "fieldConfig": {"defaults": {"unit": "short", "decimals": 0}, "overrides": [
-       {"matcher": {"id": "byName", "options": "Cost (USD)"}, "properties": [{"id": "unit", "value": "currencyUSD"}, {"id": "decimals", "value": 2}]},
-       {"matcher": {"id": "byName", "options": "Last seen"}, "properties": [{"id": "unit", "value": "dateTimeFromNow"}]}
-     ]},
-     "options": {"showHeader": true, "cellHeight": "sm", "sortBy": [{"displayName": "Tokens", "desc": true}]}}
+    {
+      "type": "row",
+      "id": 100,
+      "title": "Overview",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 0
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "id": 1,
+      "title": "Tokens (24h)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 0,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 2,
+      "title": "Cost USD (24h)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 6,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 3,
+      "title": "Sessions (24h)",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 12,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(ai_agent_session_count_total{agent=~\"$agent\"}[24h]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 4,
+      "title": "Agents with token data",
+      "gridPos": {
+        "h": 4,
+        "w": 6,
+        "x": 18,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (agent) (last_over_time(ai_agent_token_usage_total{agent=~\"$agent\"}[24h])))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "row",
+      "id": 101,
+      "title": "Tokens",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "id": 5,
+      "title": "Token rate by agent",
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 0,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (agent) (rate(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval]))",
+          "legendFormat": "{{agent}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 25,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "showPoints": "auto",
+            "gradientMode": "none"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "claude_code"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gemini_cli"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "codex"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#199e70"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "opencode"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#c98500"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pi"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d55181"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "antigravity"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#008300"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "unknown"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "timeseries",
+      "id": 6,
+      "title": "Token rate by type",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 10,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (type) (rate(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval]))",
+          "legendFormat": "{{type}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 25,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "showPoints": "auto",
+            "gradientMode": "none"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "input"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "output"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cache_read"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#199e70"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "cache_write"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#c98500"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "reasoning"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d55181"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "tool"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#008300"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "piechart",
+      "id": 7,
+      "title": "Tokens by model (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (model) (increase(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "legendFormat": "{{model}}",
+          "instant": true
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "pieType": "donut",
+        "displayLabels": [
+          "percent"
+        ],
+        "legend": {
+          "displayMode": "list",
+          "placement": "right",
+          "showLegend": true,
+          "values": [
+            "value"
+          ]
+        },
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "row",
+      "id": 102,
+      "title": "Cost",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 14
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "id": 8,
+      "title": "Cost per hour by agent (USD/h)",
+      "gridPos": {
+        "h": 8,
+        "w": 10,
+        "x": 0,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (agent) (rate(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval])) * 3600",
+          "legendFormat": "{{agent}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "custom": {
+            "drawStyle": "line",
+            "lineWidth": 2,
+            "fillOpacity": 25,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "showPoints": "auto",
+            "gradientMode": "none"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "claude_code"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gemini_cli"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "codex"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#199e70"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "opencode"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#c98500"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pi"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d55181"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "antigravity"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#008300"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "unknown"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 9,
+      "title": "Cost by model (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 10,
+        "y": 15
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (model) (increase(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "legendFormat": "{{model}}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "USD"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "model",
+        "showValue": "auto",
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "text",
+      "id": 10,
+      "title": "About cost",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 15
+      },
+      "options": {
+        "mode": "markdown",
+        "content": "**Cost is reported only by** Claude Code, OpenCode and Pi (`@damngamerz/pi-otel`).\n\nGemini CLI, Codex and Antigravity do not export a cost metric, so they never appear in the cost panels. Compare them by tokens instead.\n\nSeries colours are fixed per agent: claude_code blue, gemini_cli orange, codex aqua, opencode yellow, pi magenta, antigravity green."
+      }
+    },
+    {
+      "type": "row",
+      "id": 103,
+      "title": "Activity",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 23
+      },
+      "panels": []
+    },
+    {
+      "type": "timeseries",
+      "id": 11,
+      "title": "Sessions started by agent",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 0,
+        "y": 24
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (agent) (increase(ai_agent_session_count_total{agent=~\"$agent\"}[$__interval]))",
+          "legendFormat": "{{agent}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "showPoints": "auto",
+            "gradientMode": "none"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "claude_code"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gemini_cli"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "codex"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#199e70"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "opencode"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#c98500"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pi"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d55181"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "antigravity"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#008300"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "unknown"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "interval": "5m"
+    },
+    {
+      "type": "timeseries",
+      "id": 12,
+      "title": "Lines of code by agent",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 8,
+        "y": 24
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (agent, type) (increase(ai_agent_lines_of_code_count_total{agent=~\"$agent\"}[$__interval]))",
+          "legendFormat": "{{agent}} {{type}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "showPoints": "auto",
+            "gradientMode": "none"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^claude_code .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^gemini_cli .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^codex .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#199e70"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^opencode .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#c98500"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^pi .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d55181"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^antigravity .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#008300"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": "^unknown .*"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byRegexp",
+              "options": ".* removed$"
+            },
+            "properties": [
+              {
+                "id": "custom.fillOpacity",
+                "value": 30
+              },
+              {
+                "id": "custom.transform",
+                "value": "negative-Y"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      },
+      "interval": "5m"
+    },
+    {
+      "type": "table",
+      "id": 13,
+      "title": "Tool calls top 10 (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 16,
+        "y": 24
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (agent, tool_name) (increase(ai_agent_tool_call_count_total{agent=~\"$agent\"}[$__range])))",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Calls",
+              "agent": "Agent",
+              "tool_name": "Tool"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Calls",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "type": "row",
+      "id": 104,
+      "title": "Detail",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 32
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "id": 14,
+      "title": "Per agent (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 24,
+        "x": 0,
+        "y": 33
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (agent) (increase(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (agent) (increase(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "C",
+          "expr": "sum by (agent) (increase(ai_agent_session_count_total{agent=~\"$agent\"}[$__range]))",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "D",
+          "expr": "max by (agent) (max_over_time(timestamp(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"})[$__range:1m])) * 1000",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "agent",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true
+            },
+            "renameByName": {
+              "agent": "Agent",
+              "Value #A": "Tokens",
+              "Value #B": "Cost (USD)",
+              "Value #C": "Sessions",
+              "Value #D": "Last seen"
+            },
+            "indexByName": {
+              "agent": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cost (USD)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last seen"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Tokens",
+            "desc": true
+          }
+        ]
+      }
+    }
   ]
 }
