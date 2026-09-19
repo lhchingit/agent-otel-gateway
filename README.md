@@ -47,7 +47,12 @@ export OTEL_METRICS_EXPORTER=otlp
 export OTEL_LOGS_EXPORTER=otlp
 export OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 export OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
+export OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative
 ```
+
+Or the same keys under `"env"` in `~/.claude/settings.json`. Either way, **restart every running Claude Code session** — the environment is read at launch.
+
+`OTEL_EXPORTER_OTLP_METRICS_TEMPORALITY_PREFERENCE=cumulative` matters: Claude Code defaults to `delta`, and with delta an idle session sends nothing after its last change. A session that ran one prompt then sat idle leaves a single sample in Prometheus, and every `rate()`/`increase()` panel shows "No data" until a second sample arrives. With `cumulative` the SDK re-sends every 60 s (`OTEL_METRIC_EXPORT_INTERVAL`) regardless of activity, so the dashboard fills within about two minutes and stays current.
 
 **Through Claude Code Router (CCR):** CCR itself sends no telemetry; Claude Code keeps sending its own. Add a marker so routed sessions are distinguishable in Grafana (it becomes a `router="ccr"` label):
 
