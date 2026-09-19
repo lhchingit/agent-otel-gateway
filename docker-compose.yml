@@ -1,0 +1,26 @@
+services:
+  otel-lgtm:
+    image: grafana/otel-lgtm:latest
+    ports:
+      - "3000:3000"   # Grafana (anonymous admin enabled by the image)
+    volumes:
+      - ./grafana/provisioning/dashboards.yaml:/otel-lgtm/grafana/conf/provisioning/dashboards/ai-agents.yaml:ro
+      - lgtm-data:/data
+    # The image declares its own HEALTHCHECK (Grafana, Loki, Tempo, Prometheus, internal collector).
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:latest
+    command: ["--config=/etc/otelcol-contrib/config.yaml"]
+    volumes:
+      - ./otel-collector-config.yaml:/etc/otelcol-contrib/config.yaml:ro
+    ports:
+      - "4317:4317"    # OTLP gRPC
+      - "4318:4318"    # OTLP HTTP (default for the agents)
+      - "8889:8889"    # Prometheus scrape endpoint
+      - "13133:13133"  # health_check extension
+    depends_on:
+      otel-lgtm:
+        condition: service_healthy
+
+volumes:
+  lgtm-data:
