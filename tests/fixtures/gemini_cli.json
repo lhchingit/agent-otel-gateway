@@ -1,0 +1,34 @@
+{
+  "resourceMetrics": [{
+    "resource": {"attributes": [
+      {"key": "service.name", "value": {"stringValue": "gemini-cli"}},
+      {"key": "session.id", "value": {"stringValue": "sess-gem-1"}},
+      {"key": "installation.id", "value": {"stringValue": "inst-1"}}
+    ]},
+    "scopeMetrics": [{
+      "scope": {"name": "gemini-cli"},
+      "metrics": [
+        {"name": "gemini_cli.token.usage", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "type", "value": {"stringValue": "input"}}, {"key": "model", "value": {"stringValue": "gemini-2.5-pro"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "900"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "output"}}, {"key": "model", "value": {"stringValue": "gemini-2.5-pro"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "250"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "thought"}}, {"key": "model", "value": {"stringValue": "gemini-2.5-pro"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "120"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "cache"}}, {"key": "model", "value": {"stringValue": "gemini-2.5-pro"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "3000"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "tool"}}, {"key": "model", "value": {"stringValue": "gemini-2.5-pro"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "60"}
+        ]}},
+        {"name": "gemini_cli.session.count", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "1"}
+        ]}},
+        {"name": "gemini_cli.lines.changed", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "type", "value": {"stringValue": "added"}}, {"key": "function_name", "value": {"stringValue": "write_file"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "22"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "removed"}}, {"key": "function_name", "value": {"stringValue": "write_file"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "3"}
+        ]}},
+        {"name": "gemini_cli.tool.call.count", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "function_name", "value": {"stringValue": "read_file"}}, {"key": "success", "value": {"boolValue": true}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "7"}
+        ]}},
+        {"name": "gen_ai.client.token.usage", "unit": "{token}", "histogram": {"aggregationTemporality": 2, "dataPoints": [
+          {"attributes": [{"key": "gen_ai.token.type", "value": {"stringValue": "input"}}, {"key": "gen_ai.request.model", "value": {"stringValue": "gemini-2.5-pro"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "1", "sum": 900, "bucketCounts": ["0", "1"], "explicitBounds": [100]}
+        ]}}
+      ]
+    }]
+  }]
+}

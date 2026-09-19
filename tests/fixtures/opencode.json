@@ -1,0 +1,28 @@
+{
+  "resourceMetrics": [{
+    "resource": {"attributes": [
+      {"key": "service.name", "value": {"stringValue": "opencode"}}
+    ]},
+    "scopeMetrics": [{
+      "scope": {"name": "opencode-plugin-otel"},
+      "metrics": [
+        {"name": "opencode.token.usage", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "type", "value": {"stringValue": "input"}}, {"key": "model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "session.id", "value": {"stringValue": "sess-oc-1"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "700"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "output"}}, {"key": "model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "session.id", "value": {"stringValue": "sess-oc-1"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "200"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "reasoning"}}, {"key": "model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "session.id", "value": {"stringValue": "sess-oc-1"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "90"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "cacheRead"}}, {"key": "model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "session.id", "value": {"stringValue": "sess-oc-1"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "2500"},
+          {"attributes": [{"key": "type", "value": {"stringValue": "cacheCreation"}}, {"key": "model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "session.id", "value": {"stringValue": "sess-oc-1"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "400"}
+        ]}},
+        {"name": "opencode.cost.usage", "unit": "USD", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "session.id", "value": {"stringValue": "sess-oc-1"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asDouble": 0.11}
+        ]}},
+        {"name": "opencode.session.count", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "session.id", "value": {"stringValue": "sess-oc-1"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "1"}
+        ]}},
+        {"name": "opencode.lines_of_code.count", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "type", "value": {"stringValue": "added"}}, {"key": "session.id", "value": {"stringValue": "sess-oc-1"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "15"}
+        ]}}
+      ]
+    }]
+  }]
+}

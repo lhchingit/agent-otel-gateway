@@ -1,0 +1,18 @@
+{
+  "resourceMetrics": [{
+    "resource": {"attributes": [
+      {"key": "service.name", "value": {"stringValue": "antigravity-cli"}}
+    ]},
+    "scopeMetrics": [{
+      "scope": {"name": "agy-otel"},
+      "metrics": [
+        {"name": "agy.quota.remaining_fraction", "gauge": {"dataPoints": [
+          {"attributes": [{"key": "model", "value": {"stringValue": "gemini-3-pro"}}], "timeUnixNano": "__NOW__", "asDouble": 0.8}
+        ]}},
+        {"name": "agy.quota.seconds_to_reset", "gauge": {"dataPoints": [
+          {"attributes": [{"key": "model", "value": {"stringValue": "gemini-3-pro"}}], "timeUnixNano": "__NOW__", "asInt": "3600"}
+        ]}}
+      ]
+    }]
+  }]
+}

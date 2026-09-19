@@ -1,0 +1,27 @@
+{
+  "resourceMetrics": [{
+    "resource": {"attributes": [
+      {"key": "service.name", "value": {"stringValue": "pi"}}
+    ]},
+    "scopeMetrics": [{
+      "scope": {"name": "@damngamerz/pi-otel"},
+      "metrics": [
+        {"name": "gen_ai.client.token.usage", "unit": "{token}", "histogram": {"aggregationTemporality": 2, "dataPoints": [
+          {"attributes": [{"key": "gen_ai.system", "value": {"stringValue": "pi"}}, {"key": "gen_ai.operation.name", "value": {"stringValue": "chat"}}, {"key": "gen_ai.provider.name", "value": {"stringValue": "anthropic"}}, {"key": "gen_ai.request.model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "gen_ai.token.type", "value": {"stringValue": "input"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "3", "sum": 1100, "bucketCounts": ["0", "1", "2"], "explicitBounds": [100, 500]},
+          {"attributes": [{"key": "gen_ai.system", "value": {"stringValue": "pi"}}, {"key": "gen_ai.operation.name", "value": {"stringValue": "chat"}}, {"key": "gen_ai.provider.name", "value": {"stringValue": "anthropic"}}, {"key": "gen_ai.request.model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "gen_ai.token.type", "value": {"stringValue": "output"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "3", "sum": 330, "bucketCounts": ["0", "3", "0"], "explicitBounds": [100, 500]},
+          {"attributes": [{"key": "gen_ai.system", "value": {"stringValue": "pi"}}, {"key": "gen_ai.operation.name", "value": {"stringValue": "chat"}}, {"key": "gen_ai.provider.name", "value": {"stringValue": "anthropic"}}, {"key": "gen_ai.request.model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "gen_ai.token.type", "value": {"stringValue": "cache_read"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "3", "sum": 4000, "bucketCounts": ["0", "0", "3"], "explicitBounds": [100, 500]},
+          {"attributes": [{"key": "gen_ai.system", "value": {"stringValue": "pi"}}, {"key": "gen_ai.operation.name", "value": {"stringValue": "chat"}}, {"key": "gen_ai.provider.name", "value": {"stringValue": "anthropic"}}, {"key": "gen_ai.request.model", "value": {"stringValue": "claude-sonnet-5"}}, {"key": "gen_ai.token.type", "value": {"stringValue": "cache_write"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "3", "sum": 600, "bucketCounts": ["0", "1", "2"], "explicitBounds": [100, 500]}
+        ]}},
+        {"name": "pi.agent.cost", "unit": "USD", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "gen_ai.system", "value": {"stringValue": "pi"}}, {"key": "gen_ai.provider.name", "value": {"stringValue": "anthropic"}}, {"key": "gen_ai.request.model", "value": {"stringValue": "claude-sonnet-5"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asDouble": 0.09}
+        ]}},
+        {"name": "pi.agent.prompts", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "gen_ai.system", "value": {"stringValue": "pi"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "3"}
+        ]}},
+        {"name": "gen_ai.client.tool.calls", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "gen_ai.system", "value": {"stringValue": "pi"}}, {"key": "gen_ai.tool.name", "value": {"stringValue": "bash"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "5"}
+        ]}}
+      ]
+    }]
+  }]
+}
