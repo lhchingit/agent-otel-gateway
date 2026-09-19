@@ -12,8 +12,8 @@ Supported sources: Claude Code (directly or via Claude Code Router), Gemini CLI,
 
 ```
 agents --OTLP :4318/:4317--> otel-collector-contrib (gateway)
-                              memory_limiter -> transform -> attributes -> deltatocumulative -> batch
-                              |-> otlphttp  -> otel-lgtm:4318 (internal) -> Prometheus -> Grafana :3000
+                              memory_limiter -> filter -> transform -> attributes -> delta_to_cumulative -> batch
+                              |-> otlp_http -> otel-lgtm:4318 (internal) -> Prometheus -> Grafana :3000
                               |-> prometheus exporter :8889/metrics
                               '-> debug (verbosity: basic)
                               logs / traces: pass-through -> otel-lgtm
@@ -77,11 +77,13 @@ Order of evaluation, first match wins; result stored in datapoint attribute `age
 
 Detection precedes renaming so the same statement list can key on original names.
 
-## Cardinality control (attributes processor)
+## Cardinality control
 
-Delete datapoint attributes: `session.id`, `user.id`, `user.email`, `user.account_uuid`, `user.account_id`, `organization.id`, `terminal.type`, `prompt.id`, `installation.id`, `app.entrypoint`.
+Datapoint attributes deleted: `user.id`, `user.email`, `user.account_uuid`, `user.account_id`, `organization.id`, `terminal.type`, `prompt.id`, `installation.id`, `app.entrypoint`. The same per-user keys are also deleted from the resource so they cannot surface via `target_info`.
 
-Prometheus exporter: `add_metric_suffixes: true` (default), `metric_expiration: 10m`, `resource_to_telemetry_conversion: false`. `deltatocumulative` sits before the exporters so delta-temporality sources still produce Prometheus counters.
+`session.id` is deliberately **kept** as a label. The agents export cumulative per-session counters; without `session.id` two concurrent sessions of one agent share a label set, their samples interleave, and Prometheus reads each drop as a counter reset (over-counting `rate()`/`increase()`). Cardinality is bounded by sessions per day and aged out by `metric_expiration` / staleness. Gemini CLI puts `session.id` on the resource; the transform copies it to each datapoint so every agent carries it uniformly. Dashboard queries always aggregate with `sum by (agent, ...)`. Agents that emit no per-process identifier at all (e.g. Pi) will still collide when run concurrently; documented as a limitation.
+
+Prometheus exporter: `add_metric_suffixes: true` (default), `metric_expiration: 10m`, `resource_to_telemetry_conversion: false`. `delta_to_cumulative` (`max_stale: 10m`, `max_streams: 10000`) sits before the exporters so delta-temporality sources still produce Prometheus counters. Component names use the current (non-alias) forms `otlp_http` and `delta_to_cumulative` because the collector image tag floats.
 
 ## Grafana dashboard "AI Agents"
 
@@ -100,7 +102,7 @@ Provisioning: `dashboards.yaml` provider of type `file` pointing to `/otel-lgtm/
 ## Docker Compose
 
 - `otel-collector`: `otel/opentelemetry-collector-contrib:latest`, mounts config, ports 4317/4318/8889, `depends_on: otel-lgtm (service_healthy)`.
-- `otel-lgtm`: `grafana/otel-lgtm:latest`, port 3000, mounts the two grafana files, healthcheck on Grafana `/api/health`.
+- `otel-lgtm`: `grafana/otel-lgtm` pinned to the version validated at build time (we mount into image-internal paths and rely on its HEALTHCHECK), port 3000, mounts the two grafana files, healthcheck on Grafana `/api/health`.
 
 ## Per-agent connection (README content)
 
@@ -120,7 +122,7 @@ Provisioning: `dashboards.yaml` provider of type `file` pointing to `/otel-lgtm/
 4. Assert on `http://localhost:8889/metrics`: for each agent, `ai_agent_token_usage_total{agent="<x>",...,type="input"}` exists (Antigravity: `agy_quota_remaining_fraction{agent="antigravity"}`); `session_id` label absent; `gen_ai_client_token_usage` for gemini absent; codex/pi token appear as counters not histograms.
 5. Query Grafana proxy `/api/datasources/proxy/uid/prometheus/api/v1/query?query=ai_agent_token_usage_total` and assert every agent label present.
 6. `GET /api/search?query=AI%20Agents` returns the dashboard.
-7. `docker compose down -v` unless `KEEP=1`.
+7. `docker compose down -v` unless `KEEP=1`. The test uses its own `COMPOSE_PROJECT_NAME` so it never reuses or wipes a user's running stack.
 
 Fixtures are hand-written OTLP JSON reflecting the source inventory above, with one histogram fixture each for Codex and Pi.
 
