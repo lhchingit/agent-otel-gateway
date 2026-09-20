@@ -7,7 +7,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "\"C:\\Users\\<you>\\.local\\opt\\agy-otel\\Scripts\\python.exe\" \"C:\\Users\\<you>\\.local\\opt\\agy-otel\\hook.py\" PostToolUse",
+            "command": "C:\\Users\\<you>\\.local\\opt\\agy-otel\\agy-otel-hook.cmd PostToolUse",
             "timeout": 10
           }
         ]
@@ -16,14 +16,14 @@
     "PostInvocation": [
       {
         "type": "command",
-        "command": "\"C:\\Users\\<you>\\.local\\opt\\agy-otel\\Scripts\\python.exe\" \"C:\\Users\\<you>\\.local\\opt\\agy-otel\\hook.py\" PostInvocation",
+        "command": "C:\\Users\\<you>\\.local\\opt\\agy-otel\\agy-otel-hook.cmd PostInvocation",
         "timeout": 10
       }
     ],
     "Stop": [
       {
         "type": "command",
-        "command": "\"C:\\Users\\<you>\\.local\\opt\\agy-otel\\Scripts\\python.exe\" \"C:\\Users\\<you>\\.local\\opt\\agy-otel\\hook.py\" Stop",
+        "command": "C:\\Users\\<you>\\.local\\opt\\agy-otel\\agy-otel-hook.cmd Stop",
         "timeout": 10
       }
     ]
