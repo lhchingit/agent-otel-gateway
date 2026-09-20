@@ -25,9 +25,9 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(ai_agent_token_usage_total, agent)",
+        "definition": "label_values({__name__=~\"ai_agent_.*\"}, agent)",
         "query": {
-          "query": "label_values(ai_agent_token_usage_total, agent)",
+          "query": "label_values({__name__=~\"ai_agent_.*\"}, agent)",
           "refId": "agent"
         },
         "multi": true,
