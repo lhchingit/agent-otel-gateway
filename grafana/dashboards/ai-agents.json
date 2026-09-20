@@ -123,7 +123,7 @@
       "title": "Tokens (24h)",
       "gridPos": {
         "h": 4,
-        "w": 6,
+        "w": 5,
         "x": 0,
         "y": 1
       },
@@ -167,8 +167,8 @@
       "title": "Cost USD (24h)",
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 6,
+        "w": 5,
+        "x": 5,
         "y": 1
       },
       "datasource": {
@@ -211,8 +211,8 @@
       "title": "Sessions (24h)",
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 12,
+        "w": 5,
+        "x": 10,
         "y": 1
       },
       "datasource": {
@@ -255,8 +255,8 @@
       "title": "Agents with token data",
       "gridPos": {
         "h": 4,
-        "w": 6,
-        "x": 18,
+        "w": 5,
+        "x": 15,
         "y": 1
       },
       "datasource": {
@@ -267,6 +267,51 @@
         {
           "refId": "A",
           "expr": "count(count by (agent) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\"}[24h])))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 21,
+      "title": "Users (24h)",
+      "gridPos": {
+        "h": 4,
+        "w": 4,
+        "x": 20,
+        "y": 1
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Distinct x-user values that reported any ai_agent_* metric in the last 24h (includes \"unknown\" if some client sends no header).",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "count(count by (user) (last_over_time({__name__=~\"ai_agent_.*\",user=~\"$user\",agent=~\"$agent\"}[24h])))"
         }
       ],
       "fieldConfig": {
