@@ -94,8 +94,8 @@ Datasource `uid: prometheus` (provisioned by otel-lgtm). Variables: `agent` (mul
 | Row | Panels |
 |---|---|
 | Overview (stat) | tokens 24h, cost USD 24h, sessions 24h, agents reporting now. Totals use `sum(last_over_time(x[24h]))`: with per-session counters that start at 0 this is the exact session total and works from the first sample (one-shot runs like `codex exec` export exactly once). `increase()` would need two samples and under-counts the first chunk. Graphs keep `rate`/`increase`. |
-| Tokens | token rate by agent (stacked timeseries); tokens by type (stacked); tokens by model (pie) |
-| Cost | cost over time by agent; cost by model (bar); text note: Gemini/Codex/Antigravity report no cost |
+| Tokens | tokens per 5-min bucket by agent (stacked bars); by type (stacked bars); tokens by model (pie). Bucket delta is `x - ((x offset $__interval) or (x * 0))`: a series that just appeared counts from 0, so a one-shot run draws a bar; `rate()` would need two samples. |
+| Cost | cost per 5-min bucket by agent (stacked bars, same delta formula); cost by model (bar); text note: Gemini/Codex/Antigravity report no cost |
 | Activity | sessions by agent; lines added/removed by agent; tool calls top 10 (table, agent x tool_name) |
 | Antigravity | turns 24h, tool calls 24h (stat); turns and invocations over time (bars) — Antigravity's only signals |
 | Detail | table: one row per agent — tokens, cost, sessions, last seen |

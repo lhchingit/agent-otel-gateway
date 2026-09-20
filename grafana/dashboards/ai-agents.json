@@ -281,7 +281,7 @@
     {
       "type": "timeseries",
       "id": 5,
-      "title": "Token rate by agent",
+      "title": "Tokens per 5 min by agent",
       "gridPos": {
         "h": 8,
         "w": 10,
@@ -295,7 +295,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (agent) (rate(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval]))",
+          "expr": "sum by (agent) (ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} * 0)))",
           "legendFormat": "{{agent}}"
         }
       ],
@@ -303,16 +303,17 @@
         "defaults": {
           "unit": "short",
           "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 25,
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
             "stacking": {
               "mode": "normal",
               "group": "A"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "gradientMode": "none"
-          }
+          },
+          "decimals": 0
         },
         "overrides": [
           {
@@ -432,12 +433,14 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "interval": "5m",
+      "description": "Usage per 5-minute bucket: counter value minus its value one bucket earlier; a series that has just appeared counts from 0, so a single export is enough to draw a bar."
     },
     {
       "type": "timeseries",
       "id": 6,
-      "title": "Token rate by type",
+      "title": "Tokens per 5 min by type",
       "gridPos": {
         "h": 8,
         "w": 8,
@@ -451,7 +454,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (type) (rate(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval]))",
+          "expr": "sum by (type) (ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} * 0)))",
           "legendFormat": "{{type}}"
         }
       ],
@@ -459,16 +462,17 @@
         "defaults": {
           "unit": "short",
           "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 25,
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
             "stacking": {
               "mode": "normal",
               "group": "A"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "gradientMode": "none"
-          }
+          },
+          "decimals": 0
         },
         "overrides": [
           {
@@ -573,7 +577,9 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "interval": "5m",
+      "description": "Usage per 5-minute bucket: counter value minus its value one bucket earlier; a series that has just appeared counts from 0, so a single export is enough to draw a bar."
     },
     {
       "type": "piechart",
@@ -645,7 +651,7 @@
     {
       "type": "timeseries",
       "id": 8,
-      "title": "Cost per hour by agent (USD/h)",
+      "title": "Cost per 5 min by agent (USD)",
       "gridPos": {
         "h": 8,
         "w": 10,
@@ -659,7 +665,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (agent) (rate(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__rate_interval])) * 3600",
+          "expr": "sum by (agent) (ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"} * 0)))",
           "legendFormat": "{{agent}}"
         }
       ],
@@ -668,14 +674,14 @@
           "unit": "currencyUSD",
           "decimals": 2,
           "custom": {
-            "drawStyle": "line",
-            "lineWidth": 2,
-            "fillOpacity": 25,
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
             "stacking": {
               "mode": "normal",
               "group": "A"
             },
-            "showPoints": "auto",
+            "showPoints": "never",
             "gradientMode": "none"
           }
         },
@@ -797,7 +803,9 @@
           "mode": "multi",
           "sort": "desc"
         }
-      }
+      },
+      "interval": "5m",
+      "description": "Usage per 5-minute bucket: counter value minus its value one bucket earlier; a series that has just appeared counts from 0, so a single export is enough to draw a bar."
     },
     {
       "type": "barchart",
