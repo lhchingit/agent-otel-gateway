@@ -83,9 +83,9 @@ Detection precedes renaming so the same statement list can key on original names
 
 Datapoint attributes deleted: `user.id`, `user.email`, `user.account_uuid`, `user.account_id`, `organization.id`, `terminal.type`, `prompt.id`, `installation.id`, `app.entrypoint`. The same per-user keys are also deleted from the resource so they cannot surface via `target_info`.
 
-`session.id` is deliberately **kept** as a label. The agents export cumulative per-session counters; without `session.id` two concurrent sessions of one agent share a label set, their samples interleave, and Prometheus reads each drop as a counter reset (over-counting `rate()`/`increase()`). Cardinality is bounded by sessions per day and aged out by `metric_expiration` / staleness. Gemini CLI puts `session.id` on the resource; the transform copies it to each datapoint so every agent carries it uniformly. Dashboard queries always aggregate with `sum by (agent, ...)`. Agents that emit no per-process identifier at all (e.g. Pi) will still collide when run concurrently; documented as a limitation.
+`session.id` is deliberately **kept** as a label. The agents export cumulative per-session counters; without `session.id` two concurrent sessions of one agent share a label set, their samples interleave, and Prometheus reads each drop as a counter reset (over-counting `rate()`/`increase()`). Cardinality is bounded by sessions per day and aged out by `metric_expiration` / staleness. Gemini CLI puts `session.id` on the resource; the transform copies it to each datapoint so every agent carries it uniformly. Dashboard queries always aggregate with `sum by (agent, ...)`. Agents that send no session id (Codex, Pi) get one synthesised from the datapoint `start_time_unix_nano`, which is constant per process: every run owns its own series that starts at 0 and never resets. Only sources that neither send a session id nor keep a stable start time would fragment; none of the supported ones do.
 
-Prometheus exporter: `add_metric_suffixes: true` (default), `metric_expiration: 10m`, `resource_to_telemetry_conversion: false`. `delta_to_cumulative` (`max_stale: 10m`, `max_streams: 10000`) sits before the exporters so delta-temporality sources still produce Prometheus counters. Component names use the current (non-alias) forms `otlp_http` and `delta_to_cumulative` because the collector image tag floats.
+Prometheus exporter: `add_metric_suffixes: true` (default), `metric_expiration: 10m`, `resource_to_telemetry_conversion: false`. `delta_to_cumulative` (`max_stale: 24h` so idle sessions do not reset, `max_streams: 10000`) sits before the exporters so delta-temporality sources still produce Prometheus counters. Component names use the current (non-alias) forms `otlp_http` and `delta_to_cumulative` because the collector image tag floats.
 
 ## Grafana dashboard "AI Agents"
 
@@ -93,7 +93,7 @@ Datasource `uid: prometheus` (provisioned by otel-lgtm). Variables: `agent` (mul
 
 | Row | Panels |
 |---|---|
-| Overview (stat) | tokens 24h, cost USD 24h, sessions 24h, agents reporting now |
+| Overview (stat) | tokens 24h, cost USD 24h, sessions 24h, agents reporting now. Totals use `sum(last_over_time(x[24h]))`: with per-session counters that start at 0 this is the exact session total and works from the first sample (one-shot runs like `codex exec` export exactly once). `increase()` would need two samples and under-counts the first chunk. Graphs keep `rate`/`increase`. |
 | Tokens | token rate by agent (stacked timeseries); tokens by type (stacked); tokens by model (pie) |
 | Cost | cost over time by agent; cost by model (bar); text note: Gemini/Codex/Antigravity report no cost |
 | Activity | sessions by agent; lines added/removed by agent; tool calls top 10 (table, agent x tool_name) |

@@ -31,7 +31,7 @@ Images: `otel/opentelemetry-collector-contrib:latest` (gateway) and `grafana/ote
 
 `agent` is one of `claude_code`, `gemini_cli`, `codex`, `opencode`, `pi`, `antigravity`, `unknown`. Every other metric an agent sends is passed through under its original name with the `agent` label added.
 
-All series also carry `session_id`. It is kept on purpose: the agents export cumulative per-session counters, and without it two concurrent sessions of the same agent would collide on one series and corrupt `rate()`/`increase()`. Always aggregate with `sum by (agent, ...)`. Agents that send no session identifier at all (Pi) will still overlap when run concurrently.
+All series also carry `session_id`. It is kept on purpose: the agents export cumulative per-session counters, and without it two concurrent sessions of the same agent would collide on one series and corrupt `rate()`/`increase()`. Always aggregate with `sum by (agent, ...)`. Agents that send no session identifier (Codex, Pi) get one synthesised from the datapoint start time, which is unique per process.
 
 Removed from every metric: `user.id`, `user.email`, `user.account_uuid`, `user.account_id`, `organization.id`, `terminal.type`, `prompt.id`, `installation.id`, `app.entrypoint`.
 
@@ -94,7 +94,7 @@ endpoint = "http://localhost:4318/v1/traces"
 protocol = "binary"
 ```
 
-Codex needs the full signal path in each endpoint. Its `service.name` is `codex_tui` (interactive) or `codex_exec` (`codex exec`). Verify with `codex exec "reply with ok"`; `agent="codex"` appears within a minute. Codex sends no session identifier, so concurrent Codex sessions share one series (same limitation as Pi).
+Codex needs the full signal path in each endpoint. Its `service.name` is `codex_tui` (interactive) or `codex_exec` (`codex exec`). Verify with `codex exec "reply with ok"`; `agent="codex"` appears within a minute. Codex sends no session identifier; the gateway synthesises one per process from the datapoint start time, so runs never collide. One-shot `codex exec` runs export once at exit and still show up in the totals (they use `last_over_time`), but not in the rate graphs, which need two samples.
 
 What Codex 0.142 actually emits (differs from older docs): tokens as histogram `codex.turn.token_usage{token_type=input|output|cached_input|reasoning_output|total}`, tool calls as `codex.tool.call{tool,success,sandbox,...}`. The gateway renames `token_type`->`type`, `tool`->`tool_name`, maps `cached_input`->`cache_read`, `reasoning_output`->`reasoning`, and drops the `total` bucket (it is the sum of the others).
 

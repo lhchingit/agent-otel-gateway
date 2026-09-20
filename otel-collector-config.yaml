@@ -43,6 +43,10 @@ processors:
 
       - context: datapoint
         statements:
+          # Agents that send no session id (Codex, Pi) get one from the datapoint's
+          # start time, which is unique per process. Each run then owns its own
+          # series that starts at 0 and never resets, like the other agents.
+          - set(attributes["session.id"], String(start_time_unix_nano)) where attributes["session.id"] == nil and resource.attributes["session.id"] == nil and start_time_unix_nano > 0
           # Gemini CLI puts session.id on the resource; promote it to the datapoint so every agent carries it uniformly.
           - set(attributes["session.id"], resource.attributes["session.id"]) where resource.attributes["session.id"] != nil and attributes["session.id"] == nil
           # --- agent detection: metric-name prefix first, gen_ai.* by system/service ---
@@ -122,7 +126,7 @@ processors:
 
   # Prometheus needs cumulative temporality; some SDKs export delta.
   delta_to_cumulative:
-    max_stale: 10m
+    max_stale: 24h    # keep per-session cumulative state across idle periods (bounded by max_streams)
     max_streams: 10000
 
   batch: {}

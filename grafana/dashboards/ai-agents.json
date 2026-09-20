@@ -106,7 +106,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"
+          "expr": "sum(last_over_time(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"
         }
       ],
       "fieldConfig": {
@@ -150,7 +150,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"
+          "expr": "sum(last_over_time(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"
         }
       ],
       "fieldConfig": {
@@ -194,7 +194,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(ai_agent_session_count_total{agent=~\"$agent\"}[24h]))"
+          "expr": "sum(last_over_time(ai_agent_session_count_total{agent=~\"$agent\"}[24h]))"
         }
       ],
       "fieldConfig": {
@@ -592,7 +592,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (model) (increase(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "expr": "sum by (model) (last_over_time(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
           "legendFormat": "{{model}}",
           "instant": true
         }
@@ -816,7 +816,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (model) (increase(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "expr": "sum by (model) (last_over_time(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
           "legendFormat": "{{model}}",
           "instant": true,
           "format": "table"
@@ -878,7 +878,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "**Cost is reported only by** Claude Code, OpenCode and Pi (`@damngamerz/pi-otel`).\n\nGemini CLI, Codex and Antigravity do not export a cost metric, so they never appear in the cost panels. Compare them by tokens instead. Antigravity exposes no token data either; its hook reports tool calls, invocations and turns only (see the Antigravity row).\n\nSeries colours are fixed per agent: claude_code blue, gemini_cli orange, codex aqua, opencode yellow, pi magenta, antigravity green."
+        "content": "**Cost is reported only by** Claude Code, OpenCode and Pi (`@damngamerz/pi-otel`).\n\nGemini CLI, Codex and Antigravity do not export a cost metric, so they never appear in the cost panels. Compare them by tokens instead. Antigravity exposes no token data either; its hook reports tool calls, invocations and turns only (see the Antigravity row).\n\nSeries colours are fixed per agent: claude_code blue, gemini_cli orange, codex aqua, opencode yellow, pi magenta, antigravity green.\n\nTotals (stat tiles, tables, pie) are per-session counter values via `last_over_time`, so a single export is enough to show up; graphs use `rate`/`increase` and need two samples."
       }
     },
     {
@@ -1243,7 +1243,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (agent, tool_name) (increase(ai_agent_tool_call_count_total{agent=~\"$agent\"}[$__range])))",
+          "expr": "topk(10, sum by (agent, tool_name) (last_over_time(ai_agent_tool_call_count_total{agent=~\"$agent\"}[$__range])))",
           "instant": true,
           "format": "table"
         }
@@ -1316,19 +1316,19 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (agent) (increase(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "expr": "sum by (agent) (last_over_time(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
           "instant": true,
           "format": "table"
         },
         {
           "refId": "B",
-          "expr": "sum by (agent) (increase(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "expr": "sum by (agent) (last_over_time(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
           "instant": true,
           "format": "table"
         },
         {
           "refId": "C",
-          "expr": "sum by (agent) (increase(ai_agent_session_count_total{agent=~\"$agent\"}[$__range]))",
+          "expr": "sum by (agent) (last_over_time(ai_agent_session_count_total{agent=~\"$agent\"}[$__range]))",
           "instant": true,
           "format": "table"
         },
@@ -1451,7 +1451,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(agy_turn_count_total{agent=\"antigravity\"}[24h]))"
+          "expr": "sum(last_over_time(agy_turn_count_total{agent=\"antigravity\"}[24h]))"
         }
       ],
       "fieldConfig": {
@@ -1495,7 +1495,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(ai_agent_tool_call_count_total{agent=\"antigravity\"}[24h]))"
+          "expr": "sum(last_over_time(ai_agent_tool_call_count_total{agent=\"antigravity\"}[24h]))"
         }
       ],
       "fieldConfig": {
