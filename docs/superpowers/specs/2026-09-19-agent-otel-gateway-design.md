@@ -12,7 +12,7 @@ Supported sources: Claude Code (directly or via Claude Code Router), Gemini CLI,
 
 ```
 agents --OTLP :4318/:4317--> otel-collector-contrib (gateway)
-                              memory_limiter -> filter -> transform -> attributes -> delta_to_cumulative -> batch
+                              memory_limiter -> attributes/user -> filter -> transform -> attributes -> delta_to_cumulative -> batch
                               |-> otlp_http -> otel-lgtm:4318 (internal) -> Prometheus -> Grafana :3000
                               |-> prometheus exporter :8889/metrics
                               '-> debug (verbosity: basic)
@@ -79,6 +79,10 @@ Order of evaluation, first match wins; result stored in datapoint attribute `age
 
 Detection precedes renaming so the same statement list can key on original names.
 
+## User identity (multi-user deployments)
+
+Clients send `OTEL_EXPORTER_OTLP_HEADERS=x-user=<name>`. The OTLP receiver runs with `include_metadata: true`; an `attributes/user` processor (`insert`, `from_context: metadata.x-user`) copies the header onto every datapoint/log/span as `user`; `transform/unify` sets `user="unknown"` when absent. Unauthenticated by design (deployed inside a trusted network); the upgrade path is the `basicauth` extension with `from_context: auth.username`. The dashboard gets a `user` variable that every query filters on, plus a "Users" row (per-user table with tokens/cost/sessions/agents/last seen, tokens by user x agent, cost by user).
+
 ## Cardinality control
 
 Datapoint attributes deleted: `user.id`, `user.email`, `user.account_uuid`, `user.account_id`, `organization.id`, `terminal.type`, `prompt.id`, `installation.id`, `app.entrypoint`. The same per-user keys are also deleted from the resource so they cannot surface via `target_info`.
@@ -89,7 +93,7 @@ Prometheus exporter: `add_metric_suffixes: true` (default), `metric_expiration: 
 
 ## Grafana dashboard "AI Agents"
 
-Datasource `uid: prometheus` (provisioned by otel-lgtm). Variables: `agent` (multi, All), `model` (multi, All), both from `label_values(ai_agent_token_usage_total, ...)`.
+Datasource `uid: prometheus` (provisioned by otel-lgtm). Variables: `user`, `agent` (both multi, All, from `label_values({__name__=~"ai_agent_.*"}, ...)`), `model` (multi, All).
 
 | Row | Panels |
 |---|---|

@@ -35,6 +35,31 @@ All series also carry `session_id`. It is kept on purpose: the agents export cum
 
 Removed from every metric: `user.id`, `user.email`, `user.account_uuid`, `user.account_id`, `organization.id`, `terminal.type`, `prompt.id`, `installation.id`, `app.entrypoint`.
 
+## Multiple users, one dashboard
+
+Run the stack on a host everyone can reach and point every agent at `http://<host>:4318` instead of `localhost`. Each person identifies themselves with an OTLP request header:
+
+```
+OTEL_EXPORTER_OTLP_HEADERS=x-user=alice
+```
+
+The gateway copies `x-user` onto every metric, log and span as the `user` label (`attributes/user` in the collector config; requests without the header get `user="unknown"`). The dashboard has a `User` variable, a "Users" row (per-user table, tokens by user and agent, cost by user), and every panel filters on the selected users. This is **not authentication** — a client can claim any name — so keep the gateway inside your network (VPN/Tailscale) or put TLS + auth in front of it; the collector's `basicauth` extension plus `from_context: auth.username` is the drop-in upgrade when you need verified identities.
+
+Per agent, the same header is set as:
+
+| Agent | Where |
+|---|---|
+| Claude Code | `OTEL_EXPORTER_OTLP_HEADERS=x-user=alice` (env or `settings.json` `env`) |
+| Gemini CLI | `OTEL_EXPORTER_OTLP_HEADERS=x-user=alice` (standard OTel SDK env var) |
+| Codex CLI | `headers = { "x-user" = "alice" }` inside each `[otel.*_exporter.otlp-http]` table |
+| OpenCode | `OPENCODE_OTLP_HEADERS=x-user=alice` |
+| Pi | `OTEL_EXPORTER_OTLP_HEADERS=x-user=alice` |
+| Antigravity | `OTEL_EXPORTER_OTLP_HEADERS=x-user=alice` in `~/.config/agy-otel/env` |
+
+Sessions that were already running when the label was introduced continue under their old label set until they end; totals may briefly count both.
+
+`grafana/otel-lgtm` is a single-node development stack. For a team, keep the gateway and swap the backend: point `otlp_http/lgtm` at Grafana Cloud's OTLP endpoint, or at a self-hosted Prometheus/Mimir + Loki + Tempo, and import `grafana/dashboards/ai-agents.json`.
+
 ## Point each agent at the gateway
 
 Replace `localhost` with the gateway host if the agent runs on another machine.

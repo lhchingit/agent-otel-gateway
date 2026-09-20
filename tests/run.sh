@@ -50,8 +50,10 @@ echo "# 3. post fixtures"
 NOW="$(date +%s)000000000"
 START=$((NOW - 60000000000))
 for f in tests/fixtures/*.json; do
+  # every client identifies itself with an x-user header; antigravity is sent without one to test the fallback
+  USER_HDR='x-user: alice'; [ "$(basename "$f")" = "antigravity.json" ] && USER_HDR='x-not-user: none'
   sed -e "s/__NOW__/$NOW/g" -e "s/__START__/$START/g" "$f" \
-    | curl -fsS -X POST -H 'Content-Type: application/json' --data-binary @- "$GATEWAY/v1/metrics" >/dev/null \
+    | curl -fsS -X POST -H 'Content-Type: application/json' -H "$USER_HDR" --data-binary @- "$GATEWAY/v1/metrics" >/dev/null \
     || die "POST $f rejected"
   ok "posted $(basename "$f")"
 done
@@ -111,6 +113,12 @@ expect "^agy_turn_count_total${L}agent=\"antigravity\"${L}session_id=\"conv-agy-
 reject "^agy_tool_call_count_total" "antigravity: source tool counter renamed away"
 expect "^pi_agent_prompts_total${L}agent=\"pi\"" "pi: pass-through counter tagged"
 
+# user identity from the x-user request header (label order: ... type < user)
+expect "^ai_agent_token_usage_total${L}agent=\"claude_code\"${L}user=\"alice\"" "claude_code: user label from x-user header"
+expect "^ai_agent_token_usage_total${L}agent=\"codex\"${L}user=\"alice\"" "codex: user label from x-user header"
+expect "^agy_turn_count_total${L}agent=\"antigravity\"${L}user=\"unknown\"" "antigravity: no header -> user=unknown"
+reject "x_not_user=" "unrelated headers are not turned into labels"
+
 # CCR marker survives
 expect "^ai_agent_token_usage_total${L}router=\"ccr\"" "claude_code via CCR: router label kept"
 
@@ -149,6 +157,8 @@ done
 for a in claude_code gemini_cli codex opencode pi; do
   if grep -q "\"agent\":\"$a\"" <<<"$RES"; then ok "lgtm prometheus has agent=$a"; else fail "lgtm prometheus missing agent=$a"; fi
 done
+USERS="$(curl -fsS -G "$Q" --data-urlencode 'query=count by (user) (ai_agent_token_usage_total)' || true)"
+if grep -q '"user":"alice"' <<<"$USERS"; then ok "lgtm prometheus has user=alice"; else fail "lgtm prometheus missing user label"; fi
 NAMES="$(curl -fsS -G "$Q" --data-urlencode 'query=count by (__name__) ({__name__=~"ai_agent_.*"})' || true)"
 if grep -q '"__name__":"ai_agent_cost_usage_total"' <<<"$NAMES"; then ok "lgtm: ai_agent_cost_usage_total present"; else fail "lgtm: ai_agent_cost_usage_total missing"; fi
 if grep -q '"__name__":"ai_agent_token_usage_total"' <<<"$NAMES"; then ok "lgtm: ai_agent_token_usage_total present"; else fail "lgtm: ai_agent_token_usage_total missing"; fi

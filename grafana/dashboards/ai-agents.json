@@ -18,6 +18,34 @@
   "templating": {
     "list": [
       {
+        "name": "user",
+        "label": "User",
+        "type": "query",
+        "datasource": {
+          "type": "prometheus",
+          "uid": "prometheus"
+        },
+        "definition": "label_values({__name__=~\"ai_agent_.*\"}, user)",
+        "query": {
+          "query": "label_values({__name__=~\"ai_agent_.*\"}, user)",
+          "refId": "user"
+        },
+        "multi": true,
+        "includeAll": true,
+        "allValue": ".*",
+        "refresh": 2,
+        "sort": 1,
+        "current": {
+          "selected": true,
+          "text": [
+            "All"
+          ],
+          "value": [
+            "$__all"
+          ]
+        }
+      },
+      {
         "name": "agent",
         "label": "Agent",
         "type": "query",
@@ -25,9 +53,9 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values({__name__=~\"ai_agent_.*\"}, agent)",
+        "definition": "label_values({__name__=~\"ai_agent_.*\",user=~\"$user\"}, agent)",
         "query": {
-          "query": "label_values({__name__=~\"ai_agent_.*\"}, agent)",
+          "query": "label_values({__name__=~\"ai_agent_.*\",user=~\"$user\"}, agent)",
           "refId": "agent"
         },
         "multi": true,
@@ -53,9 +81,9 @@
           "type": "prometheus",
           "uid": "prometheus"
         },
-        "definition": "label_values(ai_agent_token_usage_total{agent=~\"$agent\"}, model)",
+        "definition": "label_values(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\"}, model)",
         "query": {
-          "query": "label_values(ai_agent_token_usage_total{agent=~\"$agent\"}, model)",
+          "query": "label_values(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\"}, model)",
           "refId": "model"
         },
         "multi": true,
@@ -106,7 +134,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(last_over_time(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"
+          "expr": "sum(last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[24h]))"
         }
       ],
       "fieldConfig": {
@@ -150,7 +178,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(last_over_time(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[24h]))"
+          "expr": "sum(last_over_time(ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[24h]))"
         }
       ],
       "fieldConfig": {
@@ -194,7 +222,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(last_over_time(ai_agent_session_count_total{agent=~\"$agent\"}[24h]))"
+          "expr": "sum(last_over_time(ai_agent_session_count_total{user=~\"$user\",agent=~\"$agent\"}[24h]))"
         }
       ],
       "fieldConfig": {
@@ -238,7 +266,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "count(count by (agent) (last_over_time(ai_agent_token_usage_total{agent=~\"$agent\"}[24h])))"
+          "expr": "count(count by (agent) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\"}[24h])))"
         }
       ],
       "fieldConfig": {
@@ -267,6 +295,385 @@
     },
     {
       "type": "row",
+      "id": 106,
+      "title": "Users",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 5
+      },
+      "panels": []
+    },
+    {
+      "type": "table",
+      "id": 18,
+      "title": "Per user (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 0,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (user) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "B",
+          "expr": "sum by (user) (last_over_time(ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "C",
+          "expr": "sum by (user) (last_over_time(ai_agent_session_count_total{user=~\"$user\",agent=~\"$agent\"}[$__range]))",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "D",
+          "expr": "count by (user) (count by (user, agent) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\"}[$__range])))",
+          "instant": true,
+          "format": "table"
+        },
+        {
+          "refId": "E",
+          "expr": "max by (user) (max_over_time(timestamp(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"})[$__range:1m])) * 1000",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "joinByField",
+          "options": {
+            "byField": "user",
+            "mode": "outer"
+          }
+        },
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true,
+              "Time 1": true,
+              "Time 2": true,
+              "Time 3": true,
+              "Time 4": true,
+              "Time 5": true
+            },
+            "renameByName": {
+              "user": "User",
+              "Value #A": "Tokens",
+              "Value #B": "Cost (USD)",
+              "Value #C": "Sessions",
+              "Value #D": "Agents",
+              "Value #E": "Last seen"
+            },
+            "indexByName": {
+              "user": 0,
+              "Value #A": 1,
+              "Value #B": 2,
+              "Value #C": 3,
+              "Value #D": 4,
+              "Value #E": 5
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Cost (USD)"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "currencyUSD"
+              },
+              {
+                "id": "decimals",
+                "value": 2
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "Last seen"
+            },
+            "properties": [
+              {
+                "id": "unit",
+                "value": "dateTimeFromNow"
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm",
+        "sortBy": [
+          {
+            "displayName": "Tokens",
+            "desc": true
+          }
+        ]
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 19,
+      "title": "Tokens by user and agent (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (user, agent) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "legendFormat": "{{agent}}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "groupingToMatrix",
+          "options": {
+            "columnField": "agent",
+            "rowField": "user",
+            "valueField": "Value",
+            "emptyValue": "zero"
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "claude_code"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gemini_cli"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "codex"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#199e70"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "opencode"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#c98500"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pi"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d55181"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "antigravity"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#008300"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "unknown"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "user\\agent",
+        "stacking": "normal",
+        "showValue": "never",
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": true,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "multi"
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 20,
+      "title": "Cost by user (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (user) (last_over_time(ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "legendFormat": "{{user}}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "USD"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "user",
+        "showValue": "auto",
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "row",
       "id": 101,
       "title": "Tokens",
       "collapsed": false,
@@ -274,7 +681,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 5
+        "y": 14
       },
       "panels": []
     },
@@ -286,7 +693,7 @@
         "h": 8,
         "w": 10,
         "x": 0,
-        "y": 6
+        "y": 15
       },
       "datasource": {
         "type": "prometheus",
@@ -295,7 +702,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (agent) (ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} * 0)))",
+          "expr": "sum by (agent) (ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} * 0)))",
           "legendFormat": "{{agent}}"
         }
       ],
@@ -445,7 +852,7 @@
         "h": 8,
         "w": 8,
         "x": 10,
-        "y": 6
+        "y": 15
       },
       "datasource": {
         "type": "prometheus",
@@ -454,7 +861,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (type) (ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"} * 0)))",
+          "expr": "sum by (type) (ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} * 0)))",
           "legendFormat": "{{type}}"
         }
       ],
@@ -589,7 +996,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 6
+        "y": 15
       },
       "datasource": {
         "type": "prometheus",
@@ -598,7 +1005,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (model) (last_over_time(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "expr": "sum by (model) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]))",
           "legendFormat": "{{model}}",
           "instant": true
         }
@@ -644,7 +1051,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 23
       },
       "panels": []
     },
@@ -656,7 +1063,7 @@
         "h": 8,
         "w": 10,
         "x": 0,
-        "y": 15
+        "y": 24
       },
       "datasource": {
         "type": "prometheus",
@@ -665,7 +1072,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (agent) (ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"} * 0)))",
+          "expr": "sum by (agent) (ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} * 0)))",
           "legendFormat": "{{agent}}"
         }
       ],
@@ -815,7 +1222,7 @@
         "h": 8,
         "w": 8,
         "x": 10,
-        "y": 15
+        "y": 24
       },
       "datasource": {
         "type": "prometheus",
@@ -824,7 +1231,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (model) (last_over_time(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "expr": "sum by (model) (last_over_time(ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]))",
           "legendFormat": "{{model}}",
           "instant": true,
           "format": "table"
@@ -882,7 +1289,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 15
+        "y": 24
       },
       "options": {
         "mode": "markdown",
@@ -898,7 +1305,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 32
       },
       "panels": []
     },
@@ -910,7 +1317,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 24
+        "y": 33
       },
       "datasource": {
         "type": "prometheus",
@@ -919,7 +1326,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (agent) (increase(ai_agent_session_count_total{agent=~\"$agent\"}[$__interval]))",
+          "expr": "sum by (agent) (increase(ai_agent_session_count_total{user=~\"$user\",agent=~\"$agent\"}[$__interval]))",
           "legendFormat": "{{agent}}"
         }
       ],
@@ -1068,7 +1475,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 24
+        "y": 33
       },
       "datasource": {
         "type": "prometheus",
@@ -1077,7 +1484,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (agent, type) (increase(ai_agent_lines_of_code_count_total{agent=~\"$agent\"}[$__interval]))",
+          "expr": "sum by (agent, type) (increase(ai_agent_lines_of_code_count_total{user=~\"$user\",agent=~\"$agent\"}[$__interval]))",
           "legendFormat": "{{agent}} {{type}}"
         }
       ],
@@ -1242,7 +1649,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 24
+        "y": 33
       },
       "datasource": {
         "type": "prometheus",
@@ -1251,7 +1658,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "topk(10, sum by (agent, tool_name) (last_over_time(ai_agent_tool_call_count_total{agent=~\"$agent\"}[$__range])))",
+          "expr": "topk(10, sum by (agent, tool_name) (last_over_time(ai_agent_tool_call_count_total{user=~\"$user\",agent=~\"$agent\"}[$__range])))",
           "instant": true,
           "format": "table"
         }
@@ -1303,7 +1710,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 41
       },
       "panels": []
     },
@@ -1315,7 +1722,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 33
+        "y": 42
       },
       "datasource": {
         "type": "prometheus",
@@ -1324,25 +1731,25 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (agent) (last_over_time(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "expr": "sum by (agent) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]))",
           "instant": true,
           "format": "table"
         },
         {
           "refId": "B",
-          "expr": "sum by (agent) (last_over_time(ai_agent_cost_usage_total{agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "expr": "sum by (agent) (last_over_time(ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]))",
           "instant": true,
           "format": "table"
         },
         {
           "refId": "C",
-          "expr": "sum by (agent) (last_over_time(ai_agent_session_count_total{agent=~\"$agent\"}[$__range]))",
+          "expr": "sum by (agent) (last_over_time(ai_agent_session_count_total{user=~\"$user\",agent=~\"$agent\"}[$__range]))",
           "instant": true,
           "format": "table"
         },
         {
           "refId": "D",
-          "expr": "max by (agent) (max_over_time(timestamp(ai_agent_token_usage_total{agent=~\"$agent\",model=~\"$model\"})[$__range:1m])) * 1000",
+          "expr": "max by (agent) (max_over_time(timestamp(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"})[$__range:1m])) * 1000",
           "instant": true,
           "format": "table"
         }
@@ -1438,7 +1845,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 50
       },
       "panels": []
     },
@@ -1450,7 +1857,7 @@
         "h": 6,
         "w": 4,
         "x": 0,
-        "y": 42
+        "y": 51
       },
       "datasource": {
         "type": "prometheus",
@@ -1459,7 +1866,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(last_over_time(agy_turn_count_total{agent=\"antigravity\"}[24h]))"
+          "expr": "sum(last_over_time(agy_turn_count_total{user=~\"$user\",agent=\"antigravity\"}[24h]))"
         }
       ],
       "fieldConfig": {
@@ -1494,7 +1901,7 @@
         "h": 6,
         "w": 4,
         "x": 4,
-        "y": 42
+        "y": 51
       },
       "datasource": {
         "type": "prometheus",
@@ -1503,7 +1910,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(last_over_time(ai_agent_tool_call_count_total{agent=\"antigravity\"}[24h]))"
+          "expr": "sum(last_over_time(ai_agent_tool_call_count_total{user=~\"$user\",agent=\"antigravity\"}[24h]))"
         }
       ],
       "fieldConfig": {
@@ -1538,7 +1945,7 @@
         "h": 6,
         "w": 16,
         "x": 8,
-        "y": 42
+        "y": 51
       },
       "datasource": {
         "type": "prometheus",
@@ -1548,12 +1955,12 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum(increase(agy_turn_count_total{agent=\"antigravity\"}[$__interval]))",
+          "expr": "sum(increase(agy_turn_count_total{user=~\"$user\",agent=\"antigravity\"}[$__interval]))",
           "legendFormat": "turns"
         },
         {
           "refId": "B",
-          "expr": "sum(increase(agy_invocation_count_total{agent=\"antigravity\"}[$__interval]))",
+          "expr": "sum(increase(agy_invocation_count_total{user=~\"$user\",agent=\"antigravity\"}[$__interval]))",
           "legendFormat": "invocations"
         }
       ],

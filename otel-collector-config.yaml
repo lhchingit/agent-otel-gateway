@@ -7,8 +7,10 @@ receivers:
     protocols:
       grpc:
         endpoint: 0.0.0.0:4317
+        include_metadata: true   # expose request headers to attributes/user
       http:
         endpoint: 0.0.0.0:4318
+        include_metadata: true
 
 processors:
   memory_limiter:
@@ -26,6 +28,15 @@ processors:
       datapoint:
         # Codex also reports a "total" token bucket that is the sum of the others.
         - 'metric.name == "codex.turn.token_usage" and attributes["token_type"] == "total"'
+
+  # Who sent it: every client sets OTEL_EXPORTER_OTLP_HEADERS=x-user=<name>. Multi-user
+  # deployments key the dashboard on this label; without the header it becomes "unknown"
+  # (fallback in transform/unify). Not authenticated - a client can claim any name.
+  attributes/user:
+    actions:
+      - key: user
+        action: insert
+        from_context: metadata.x-user
 
   # Normalise every agent into the ai_agent.* schema.
   # Block order matters: (1) derive sums from histograms, (2) tag agent + normalise
@@ -58,6 +69,7 @@ processors:
           - set(attributes["agent"], "antigravity") where IsMatch(metric.name, "^agy\\.")
           - set(attributes["agent"], "pi") where IsMatch(metric.name, "^gen_ai\\.") and (attributes["gen_ai.system"] == "pi" or resource.attributes["service.name"] == "pi")
           - set(attributes["agent"], "unknown") where attributes["agent"] == nil
+          - set(attributes["user"], "unknown") where attributes["user"] == nil
           # --- attribute key normalisation ---
           # Key renames are intentionally metric-agnostic (datapoint level).
           - set(attributes["type"], attributes["gen_ai.token.type"]) where attributes["gen_ai.token.type"] != nil and attributes["type"] == nil
@@ -149,13 +161,13 @@ service:
   pipelines:
     metrics:
       receivers: [otlp]
-      processors: [memory_limiter, filter/dedupe, transform/unify, attributes/cardinality, delta_to_cumulative, batch]
+      processors: [memory_limiter, attributes/user, filter/dedupe, transform/unify, attributes/cardinality, delta_to_cumulative, batch]
       exporters: [otlp_http/lgtm, prometheus, debug]
     logs:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, attributes/user, batch]
       exporters: [otlp_http/lgtm]
     traces:
       receivers: [otlp]
-      processors: [memory_limiter, batch]
+      processors: [memory_limiter, attributes/user, batch]
       exporters: [otlp_http/lgtm]
