@@ -103,7 +103,9 @@ expect "^ai_agent_tool_call_count_total${L}agent=\"codex\"${L}tool_name=\"shell\
 expect "^ai_agent_tool_call_count_total${L}agent=\"pi\"${L}tool_name=\"bash\"" "pi: gen_ai.tool.name -> tool_name"
 
 # pass-through metrics keep their name and gain agent
-expect "^agy_quota_remaining_fraction${L}agent=\"antigravity\"" "antigravity: pass-through gauge tagged"
+expect "^ai_agent_tool_call_count_total${L}agent=\"antigravity\"${L}tool_name=\"read_file\"" "antigravity: hook tool counter mapped (delta -> cumulative)"
+expect "^agy_turn_count_total${L}agent=\"antigravity\"${L}session_id=\"conv-agy-1\"" "antigravity: pass-through turn counter tagged"
+reject "^agy_tool_call_count_total" "antigravity: source tool counter renamed away"
 expect "^pi_agent_prompts_total${L}agent=\"pi\"" "pi: pass-through counter tagged"
 
 # CCR marker survives

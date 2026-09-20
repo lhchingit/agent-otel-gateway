@@ -7,7 +7,7 @@ agents --OTLP :4318 (http) / :4317 (grpc)--> otel-collector-contrib --> otel-lgt
                                                     '--> :8889/metrics (Prometheus scrape endpoint)
 ```
 
-Supported: Claude Code (directly or through Claude Code Router), Gemini CLI, Codex CLI, OpenCode (`opencode-plugin-otel`), Pi (`@damngamerz/pi-otel`), Antigravity CLI (hook-based, quota gauges only).
+Supported: Claude Code (directly or through Claude Code Router), Gemini CLI, Codex CLI, OpenCode (`opencode-plugin-otel`), Pi (`@damngamerz/pi-otel`), Antigravity CLI (via the hook in `hooks/antigravity/`, activity only).
 
 ## Run
 
@@ -108,14 +108,26 @@ The plugin defaults to `http://127.0.0.1:4318`; override with `PI_OTEL_ENDPOINT`
 
 ### Antigravity CLI
 
-Antigravity has no native OTel export. Use the community hook script (see the SigNoz "Antigravity CLI monitoring" guide) with, in `~/.config/agy-otel/env`:
+Antigravity has no native OTel export and exposes no token/cost data to hooks. This repo ships a hook (`hooks/antigravity/hook.py`, a Windows-compatible port of the SigNoz reference hook) that turns Antigravity's `PostToolUse` / `PostInvocation` / `Stop` events into spans (Tempo) and three counters: `agy.tool.call.count{tool_name}` (unified into `ai_agent_tool_call_count_total`), `agy.invocation.count{model}` and `agy.turn.count`. The dashboard shows them in "Tool calls" and in the "Antigravity" row.
+
+Install (Python 3.11+; paths shown for Windows, use `bin/python` on macOS/Linux):
+
+```powershell
+py -3 -m venv "$HOME\.local\opt\agy-otel"
+& "$HOME\.local\opt\agy-otel\Scripts\python.exe" -m pip install opentelemetry-sdk opentelemetry-exporter-otlp-proto-http
+Copy-Item hooks\antigravity\hook.py "$HOME\.local\opt\agy-otel\hook.py"
+```
+
+`~/.config/agy-otel/env` (hooks inherit an arbitrary shell, so the endpoint lives in a file):
 
 ```
 OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 ```
 
-Only `agy.quota.*` gauges arrive as metrics; token/cost data is not available from Antigravity.
+Register the hook by merging `hooks/antigravity/hooks.json` into `~/.gemini/config/hooks.json` (replace `<you>` with your user name; keep any other named hook blocks you already have). Restart `agy`; `~/.gemini/antigravity-cli/cli.log` should log `loaded N named hooks`. Each event returns to the agent in well under 100 ms — the export runs in a detached child process.
+
+Why not the reference hook as-is: it uses `os.fork()`, which does not exist on Windows (the hook silently emits nothing), and it samples quota with `agy -p /usage`, which on agy 1.2.7 starts a real agent turn (tokens and ~30 s) instead of printing quota.
 
 ## Test
 
@@ -134,5 +146,6 @@ The test uses its own compose project (`agent-otel-gateway-test`), so it never t
 | `docker-compose.yml` | gateway + otel-lgtm |
 | `grafana/dashboards/ai-agents.json` | the dashboard |
 | `grafana/provisioning/dashboards.yaml` | Grafana provisioning entry |
+| `hooks/antigravity/` | Antigravity CLI hook (`hook.py`) and `hooks.json` snippet |
 | `tests/fixtures/*.json` | sample OTLP payloads, one per agent |
 | `docs/superpowers/specs/` | design spec |

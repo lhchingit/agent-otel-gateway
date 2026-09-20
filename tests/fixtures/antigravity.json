@@ -1,16 +1,20 @@
 {
   "resourceMetrics": [{
     "resource": {"attributes": [
-      {"key": "service.name", "value": {"stringValue": "antigravity-cli"}}
+      {"key": "service.name", "value": {"stringValue": "antigravity-cli"}},
+      {"key": "service.instance.id", "value": {"stringValue": "test-host"}}
     ]},
     "scopeMetrics": [{
-      "scope": {"name": "agy-otel"},
+      "scope": {"name": "antigravity-cli-hooks"},
       "metrics": [
-        {"name": "agy.quota.remaining_fraction", "gauge": {"dataPoints": [
-          {"attributes": [{"key": "model", "value": {"stringValue": "gemini-3-pro"}}], "timeUnixNano": "__NOW__", "asDouble": 0.8}
+        {"name": "agy.tool.call.count", "unit": "{call}", "sum": {"aggregationTemporality": 1, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "session.id", "value": {"stringValue": "conv-agy-1"}}, {"key": "model", "value": {"stringValue": "gemini-3-pro"}}, {"key": "tool_name", "value": {"stringValue": "read_file"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "1"}
         ]}},
-        {"name": "agy.quota.seconds_to_reset", "gauge": {"dataPoints": [
-          {"attributes": [{"key": "model", "value": {"stringValue": "gemini-3-pro"}}], "timeUnixNano": "__NOW__", "asInt": "3600"}
+        {"name": "agy.invocation.count", "unit": "{invocation}", "sum": {"aggregationTemporality": 1, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "session.id", "value": {"stringValue": "conv-agy-1"}}, {"key": "model", "value": {"stringValue": "gemini-3-pro"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "1"}
+        ]}},
+        {"name": "agy.turn.count", "unit": "{turn}", "sum": {"aggregationTemporality": 1, "isMonotonic": true, "dataPoints": [
+          {"attributes": [{"key": "session.id", "value": {"stringValue": "conv-agy-1"}}, {"key": "model", "value": {"stringValue": "gemini-3-pro"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "1"}
         ]}}
       ]
     }]

@@ -31,6 +31,8 @@ grafana/dashboards/ai-agents.json        mounted to /otel-lgtm/grafana/conf/prov
 README.md                                per-agent connection settings
 tests/fixtures/<agent>.json              OTLP/HTTP JSON metrics payload per agent
 tests/run.sh                             end-to-end check (bash + curl + docker compose)
+hooks/antigravity/hook.py                Antigravity CLI hook (spans + counters over OTLP/HTTP)
+hooks/antigravity/hooks.json             snippet for ~/.gemini/config/hooks.json
 ```
 
 ## Source inventory (what each agent emits)
@@ -40,7 +42,7 @@ tests/run.sh                             end-to-end check (bash + curl + docker 
 | Claude Code | `claude-code` | `claude_code.` | `claude_code.token.usage` counter, `type`=input/output/cacheRead/cacheCreation, `model` | `claude_code.cost.usage` counter, `model` | Default gRPC 4317; `OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf` for 4318. Puts `session.id`, `user.*`, `organization.id`, `terminal.type` on every datapoint. |
 | CCR | — | — | — | — | Proxy only; Claude Code still emits `claude_code.*`. Users set `OTEL_RESOURCE_ATTRIBUTES=router=ccr`, which Claude Code copies onto datapoints as `router`. |
 | Gemini CLI | `gemini-cli` | `gemini_cli.` | `gemini_cli.token.usage` counter, `type`=input/output/thought/cache/tool, `model` | none | Also emits `gen_ai.client.token.usage` (dropped: duplicate). `GEMINI_TELEMETRY_OTLP_PROTOCOL=http`. |
-| Antigravity | `antigravity-cli` | `agy.` | none | none | Community hook script; only `agy.quota.*` gauges. Pass-through with `agent` label. |
+| Antigravity | `antigravity-cli` | `agy.` | none | none | No native export. Repo ships `hooks/antigravity/hook.py` (Windows-compatible port of the SigNoz hook, no `os.fork`, no `agy -p /usage` quota sampling which on agy 1.2.7 runs a real agent turn). Emits spans plus delta counters `agy.tool.call.count{tool_name,model,session.id}`, `agy.invocation.count{model,session.id}`, `agy.turn.count{model,session.id}`; `service.instance.id` pinned to hostname so hook processes share one stream. |
 | Pi (`@damngamerz/pi-otel`) | `pi` | `pi.` / `gen_ai.` | `gen_ai.client.token.usage` **histogram**, `gen_ai.token.type`=input/output/cache_read/cache_write, `gen_ai.request.model`, `gen_ai.system=pi` | `pi.agent.cost` counter | Default `http://127.0.0.1:4318`. Also `pi.agent.prompts`, `pi.agent.turns`, `gen_ai.client.tool.calls` (`gen_ai.tool.name`). |
 | Codex | `codex_tui` / `codex_exec` | `codex.` | `codex.turn.token_usage` **histogram**, `type`=input/output/cached/reasoning/tool, `model` | none | `[otel.metrics_exporter.otlp-http] endpoint="http://localhost:4318/v1/metrics"`, `protocol="binary"`, requires `analytics_enabled=true`. Sessions: `codex.thread.started`. Tools: `codex.tool.call` (`tool.name`). |
 | OpenCode | `opencode` | `opencode.` | `opencode.token.usage` counter, `type`=input/output/reasoning/cacheRead/cacheCreation, `model` | `opencode.cost.usage` | `OPENCODE_OTLP_PROTOCOL=http/protobuf`, `OPENCODE_OTLP_ENDPOINT=http://localhost:4318`. |
@@ -55,7 +57,7 @@ All unified metrics have `unit` set to `""` so Prometheus (both the exporter and
 | `ai_agent.cost.usage` | monotonic sum | `agent`, `model` | `claude_code.cost.usage`, `opencode.cost.usage`, `pi.agent.cost` |
 | `ai_agent.session.count` | monotonic sum | `agent` | `claude_code.session.count`, `gemini_cli.session.count`, `opencode.session.count`, `codex.thread.started` |
 | `ai_agent.lines_of_code.count` | monotonic sum | `agent`, `type` in added/removed | `claude_code.lines_of_code.count`, `gemini_cli.lines.changed`, `opencode.lines_of_code.count` |
-| `ai_agent.tool.call.count` | monotonic sum | `agent`, `tool_name` | `gemini_cli.tool.call.count` (`function_name`), `codex.tool.call` (`tool.name`), `gen_ai.client.tool.calls` when pi (`gen_ai.tool.name`) |
+| `ai_agent.tool.call.count` | monotonic sum | `agent`, `tool_name` | `gemini_cli.tool.call.count` (`function_name`), `codex.tool.call` (`tool.name`), `gen_ai.client.tool.calls` when pi (`gen_ai.tool.name`), `agy.tool.call.count` |
 
 Value normalisation for `type`: `cacheRead`->`cache_read`, `cached`->`cache_read`, `cache`->`cache_read`, `cacheCreation`->`cache_write`, `thought`->`reasoning`.
 Key normalisation: `gen_ai.token.type`->`type`, `gen_ai.request.model`->`model`, `function_name`->`tool_name`, `tool.name`->`tool_name`, `gen_ai.tool.name`->`tool_name`.
@@ -95,6 +97,7 @@ Datasource `uid: prometheus` (provisioned by otel-lgtm). Variables: `agent` (mul
 | Tokens | token rate by agent (stacked timeseries); tokens by type (stacked); tokens by model (pie) |
 | Cost | cost over time by agent; cost by model (bar); text note: Gemini/Codex/Antigravity report no cost |
 | Activity | sessions by agent; lines added/removed by agent; tool calls top 10 (table, agent x tool_name) |
+| Antigravity | turns 24h, tool calls 24h (stat); turns and invocations over time (bars) — Antigravity's only signals |
 | Detail | table: one row per agent — tokens, cost, sessions, last seen |
 
 Provisioning: `dashboards.yaml` provider of type `file` pointing to `/otel-lgtm/grafana/conf/provisioning/dashboards/custom`.

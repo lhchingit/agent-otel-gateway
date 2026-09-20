@@ -878,7 +878,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "**Cost is reported only by** Claude Code, OpenCode and Pi (`@damngamerz/pi-otel`).\n\nGemini CLI, Codex and Antigravity do not export a cost metric, so they never appear in the cost panels. Compare them by tokens instead.\n\nSeries colours are fixed per agent: claude_code blue, gemini_cli orange, codex aqua, opencode yellow, pi magenta, antigravity green."
+        "content": "**Cost is reported only by** Claude Code, OpenCode and Pi (`@damngamerz/pi-otel`).\n\nGemini CLI, Codex and Antigravity do not export a cost metric, so they never appear in the cost panels. Compare them by tokens instead. Antigravity exposes no token data either; its hook reports tool calls, invocations and turns only (see the Antigravity row).\n\nSeries colours are fixed per agent: claude_code blue, gemini_cli orange, codex aqua, opencode yellow, pi magenta, antigravity green."
       }
     },
     {
@@ -1419,6 +1419,195 @@
             "desc": true
           }
         ]
+      }
+    },
+    {
+      "type": "row",
+      "id": 105,
+      "title": "Antigravity",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 41
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "id": 15,
+      "title": "Antigravity turns (24h)",
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 0,
+        "y": 42
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(agy_turn_count_total{agent=\"antigravity\"}[24h]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#008300"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "stat",
+      "id": 16,
+      "title": "Antigravity tool calls (24h)",
+      "gridPos": {
+        "h": 6,
+        "w": 4,
+        "x": 4,
+        "y": 42
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(ai_agent_tool_call_count_total{agent=\"antigravity\"}[24h]))"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#008300"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "timeseries",
+      "id": 17,
+      "title": "Antigravity turns and invocations",
+      "gridPos": {
+        "h": 6,
+        "w": 16,
+        "x": 8,
+        "y": 42
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "interval": "5m",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(increase(agy_turn_count_total{agent=\"antigravity\"}[$__interval]))",
+          "legendFormat": "turns"
+        },
+        {
+          "refId": "B",
+          "expr": "sum(increase(agy_invocation_count_total{agent=\"antigravity\"}[$__interval]))",
+          "legendFormat": "invocations"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "none",
+              "group": "A"
+            },
+            "showPoints": "auto",
+            "gradientMode": "none"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "turns"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#008300"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "invocations"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
       }
     }
   ]

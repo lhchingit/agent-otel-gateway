@@ -76,7 +76,7 @@ processors:
           - set(name, "ai_agent.cost.usage") where name == "claude_code.cost.usage" or name == "opencode.cost.usage" or name == "pi.agent.cost"
           - set(name, "ai_agent.session.count") where name == "claude_code.session.count" or name == "gemini_cli.session.count" or name == "opencode.session.count" or name == "codex.thread.started"
           - set(name, "ai_agent.lines_of_code.count") where name == "claude_code.lines_of_code.count" or name == "gemini_cli.lines.changed" or name == "opencode.lines_of_code.count"
-          - set(name, "ai_agent.tool.call.count") where name == "gemini_cli.tool.call.count" or name == "codex.tool.call" or name == "gen_ai.client.tool.calls"
+          - set(name, "ai_agent.tool.call.count") where name == "gemini_cli.tool.call.count" or name == "codex.tool.call" or name == "gen_ai.client.tool.calls" or name == "agy.tool.call.count"
           # Units differ per agent ("tokens", "{token}", "USD", ""); Prometheus would turn them
           # into name suffixes. Clear them so every backend yields e.g. ai_agent_token_usage_total.
           - set(unit, "") where IsMatch(name, "^ai_agent\\.")
