@@ -44,7 +44,7 @@ hooks/antigravity/hooks.json             snippet for ~/.gemini/config/hooks.json
 | Gemini CLI | `gemini-cli` | `gemini_cli.` | `gemini_cli.token.usage` counter, `type`=input/output/thought/cache/tool, `model` | none | Also emits `gen_ai.client.token.usage` (dropped: duplicate). `GEMINI_TELEMETRY_OTLP_PROTOCOL=http`. |
 | Antigravity | `antigravity-cli` | `agy.` | none | none | No native export. Repo ships `hooks/antigravity/hook.py` (Windows-compatible port of the SigNoz hook, no `os.fork`, no `agy -p /usage` quota sampling which on agy 1.2.7 runs a real agent turn). Emits spans plus delta counters `agy.tool.call.count{tool_name,model,session.id}`, `agy.invocation.count{model,session.id}`, `agy.turn.count{model,session.id}`; `service.instance.id` pinned to hostname so hook processes share one stream. |
 | Pi (`@damngamerz/pi-otel`) | `pi` | `pi.` / `gen_ai.` | `gen_ai.client.token.usage` **histogram**, `gen_ai.token.type`=input/output/cache_read/cache_write, `gen_ai.request.model`, `gen_ai.system=pi` | `pi.agent.cost` counter | Default `http://127.0.0.1:4318`. Also `pi.agent.prompts`, `pi.agent.turns`, `gen_ai.client.tool.calls` (`gen_ai.tool.name`). |
-| Codex | `codex_tui` / `codex_exec` | `codex.` | `codex.turn.token_usage` **histogram**, `type`=input/output/cached/reasoning/tool, `model` | none | `[otel.metrics_exporter.otlp-http] endpoint="http://localhost:4318/v1/metrics"`, `protocol="binary"`, requires `analytics_enabled=true`. Sessions: `codex.thread.started`. Tools: `codex.tool.call` (`tool.name`). |
+| Codex | `codex_tui` / `codex_exec` | `codex.` | `codex.turn.token_usage` **histogram**, `token_type`=input/output/cached_input/reasoning_output/total, `model` | none | `analytics_enabled=true` + `[otel.metrics_exporter.otlp-http] endpoint="http://localhost:4318/v1/metrics"`, `protocol="binary"`. Sessions: `codex.thread.started`. Tools: `codex.tool.call` (`tool`, `success`). No session identifier (concurrent sessions collide). Verified against codex-cli 0.142.0 on 2026-09-20. |
 | OpenCode | `opencode` | `opencode.` | `opencode.token.usage` counter, `type`=input/output/reasoning/cacheRead/cacheCreation, `model` | `opencode.cost.usage` | `OPENCODE_OTLP_PROTOCOL=http/protobuf`, `OPENCODE_OTLP_ENDPOINT=http://localhost:4318`. |
 
 ## Unified schema
@@ -57,10 +57,10 @@ All unified metrics have `unit` set to `""` so Prometheus (both the exporter and
 | `ai_agent.cost.usage` | monotonic sum | `agent`, `model` | `claude_code.cost.usage`, `opencode.cost.usage`, `pi.agent.cost` |
 | `ai_agent.session.count` | monotonic sum | `agent` | `claude_code.session.count`, `gemini_cli.session.count`, `opencode.session.count`, `codex.thread.started` |
 | `ai_agent.lines_of_code.count` | monotonic sum | `agent`, `type` in added/removed | `claude_code.lines_of_code.count`, `gemini_cli.lines.changed`, `opencode.lines_of_code.count` |
-| `ai_agent.tool.call.count` | monotonic sum | `agent`, `tool_name` | `gemini_cli.tool.call.count` (`function_name`), `codex.tool.call` (`tool.name`), `gen_ai.client.tool.calls` when pi (`gen_ai.tool.name`), `agy.tool.call.count` |
+| `ai_agent.tool.call.count` | monotonic sum | `agent`, `tool_name` | `gemini_cli.tool.call.count` (`function_name`), `codex.tool.call` (`tool`), `gen_ai.client.tool.calls` when pi (`gen_ai.tool.name`), `agy.tool.call.count` |
 
-Value normalisation for `type`: `cacheRead`->`cache_read`, `cached`->`cache_read`, `cache`->`cache_read`, `cacheCreation`->`cache_write`, `thought`->`reasoning`.
-Key normalisation: `gen_ai.token.type`->`type`, `gen_ai.request.model`->`model`, `function_name`->`tool_name`, `tool.name`->`tool_name`, `gen_ai.tool.name`->`tool_name`.
+Value normalisation for `type`: `cacheRead`->`cache_read`, `cached`->`cache_read`, `cache`->`cache_read`, `cached_input`->`cache_read`, `cacheCreation`->`cache_write`, `thought`->`reasoning`, `reasoning_output`->`reasoning`. Codex datapoints with `token_type="total"` are dropped (sum of the others).
+Key normalisation: `gen_ai.token.type`->`type`, `token_type`->`type`, `gen_ai.request.model`->`model`, `function_name`->`tool_name`, `tool.name`->`tool_name`, `gen_ai.tool.name`->`tool_name`, `tool`->`tool_name`.
 
 Metrics not in the table keep their original name and gain the `agent` label. Gemini's `gen_ai.client.token.usage` is dropped. Nothing else is dropped.
 

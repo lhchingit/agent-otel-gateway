@@ -76,7 +76,10 @@ expect "^ai_agent_token_usage_total${L}agent=\"claude_code\"${L}type=\"cache_rea
 expect "^ai_agent_token_usage_total${L}agent=\"claude_code\"${L}type=\"cache_write\"[^}]*\} 800$" "claude_code: cacheCreation -> cache_write (800)"
 expect "^ai_agent_token_usage_total${L}agent=\"gemini_cli\"${L}type=\"reasoning\"[^}]*\} 120$" "gemini_cli: thought -> reasoning (120)"
 expect "^ai_agent_token_usage_total${L}agent=\"gemini_cli\"${L}type=\"cache_read\"[^}]*\} 3000$" "gemini_cli: cache -> cache_read (3000)"
-expect "^ai_agent_token_usage_total${L}agent=\"codex\"${L}type=\"cache_read\"[^}]*\} 2000$" "codex: histogram sum -> counter, cached -> cache_read (2000)"
+expect "^ai_agent_token_usage_total${L}agent=\"codex\"${L}type=\"cache_read\"[^}]*\} 2000$" "codex: histogram sum -> counter, cached_input -> cache_read (2000)"
+expect "^ai_agent_token_usage_total${L}agent=\"codex\"${L}type=\"reasoning\"[^}]*\} 350$" "codex: reasoning_output -> reasoning (350)"
+reject "^ai_agent_token_usage_total${L}agent=\"codex\"${L}type=\"total\"" "codex: token_type=total dropped (would double count)"
+reject "token_type=" "codex: token_type key renamed away"
 expect "^ai_agent_token_usage_total${L}agent=\"codex\"${L}type=\"input\"[^}]*\} 1500$" "codex: histogram sum -> counter (1500)"
 expect "^ai_agent_token_usage_total${L}agent=\"opencode\"${L}type=\"cache_write\"[^}]*\} 400$" "opencode: cacheCreation -> cache_write (400)"
 expect "^ai_agent_token_usage_total${L}agent=\"pi\"${L}model=\"claude-sonnet-5\"${L}type=\"cache_write\"[^}]*\} 600$" "pi: gen_ai histogram -> counter, keys renamed (600)"
@@ -99,7 +102,7 @@ done
 
 # tool calls with normalised tool_name
 expect "^ai_agent_tool_call_count_total${L}agent=\"gemini_cli\"${L}tool_name=\"read_file\"" "gemini_cli: function_name -> tool_name"
-expect "^ai_agent_tool_call_count_total${L}agent=\"codex\"${L}tool_name=\"shell\"" "codex: tool.name -> tool_name"
+expect "^ai_agent_tool_call_count_total${L}agent=\"codex\"${L}tool_name=\"shell_command\"" "codex: tool -> tool_name"
 expect "^ai_agent_tool_call_count_total${L}agent=\"pi\"${L}tool_name=\"bash\"" "pi: gen_ai.tool.name -> tool_name"
 
 # pass-through metrics keep their name and gain agent

@@ -7,16 +7,17 @@
       "scope": {"name": "codex"},
       "metrics": [
         {"name": "codex.turn.token_usage", "histogram": {"aggregationTemporality": 2, "dataPoints": [
-          {"attributes": [{"key": "type", "value": {"stringValue": "input"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "2", "sum": 1500, "bucketCounts": ["0", "0", "2"], "explicitBounds": [100, 500]},
-          {"attributes": [{"key": "type", "value": {"stringValue": "output"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "2", "sum": 400, "bucketCounts": ["0", "1", "1"], "explicitBounds": [100, 500]},
-          {"attributes": [{"key": "type", "value": {"stringValue": "cached"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "2", "sum": 2000, "bucketCounts": ["0", "0", "2"], "explicitBounds": [100, 500]},
-          {"attributes": [{"key": "type", "value": {"stringValue": "reasoning"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "2", "sum": 350, "bucketCounts": ["0", "1", "1"], "explicitBounds": [100, 500]}
+          {"attributes": [{"key": "token_type", "value": {"stringValue": "input"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}, {"key": "app_version", "value": {"stringValue": "0.142.0"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "2", "sum": 1500, "bucketCounts": ["0", "0", "2"], "explicitBounds": [100, 500]},
+          {"attributes": [{"key": "token_type", "value": {"stringValue": "output"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}, {"key": "app_version", "value": {"stringValue": "0.142.0"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "2", "sum": 400, "bucketCounts": ["0", "1", "1"], "explicitBounds": [100, 500]},
+          {"attributes": [{"key": "token_type", "value": {"stringValue": "cached_input"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}, {"key": "app_version", "value": {"stringValue": "0.142.0"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "2", "sum": 2000, "bucketCounts": ["0", "0", "2"], "explicitBounds": [100, 500]},
+          {"attributes": [{"key": "token_type", "value": {"stringValue": "reasoning_output"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}, {"key": "app_version", "value": {"stringValue": "0.142.0"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "2", "sum": 350, "bucketCounts": ["0", "1", "1"], "explicitBounds": [100, 500]},
+          {"attributes": [{"key": "token_type", "value": {"stringValue": "total"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}, {"key": "app_version", "value": {"stringValue": "0.142.0"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "count": "2", "sum": 4250, "bucketCounts": ["0", "0", "2"], "explicitBounds": [100, 500]}
         ]}},
         {"name": "codex.thread.started", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
           {"attributes": [{"key": "originator", "value": {"stringValue": "codex_cli_rs"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "1"}
         ]}},
         {"name": "codex.tool.call", "sum": {"aggregationTemporality": 2, "isMonotonic": true, "dataPoints": [
-          {"attributes": [{"key": "tool.name", "value": {"stringValue": "shell"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "4"}
+          {"attributes": [{"key": "tool", "value": {"stringValue": "shell_command"}}, {"key": "success", "value": {"stringValue": "true"}}, {"key": "model", "value": {"stringValue": "gpt-5-codex"}}], "startTimeUnixNano": "__START__", "timeUnixNano": "__NOW__", "asInt": "4"}
         ]}}
       ]
     }]

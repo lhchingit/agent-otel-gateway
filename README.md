@@ -73,20 +73,30 @@ export GEMINI_TELEMETRY_OTLP_PROTOCOL=http
 
 ### Codex CLI
 
-`~/.codex/config.toml`:
+Add to `~/.codex/config.toml` (keep `analytics_enabled` at the top level, above any `[table]`; metrics are silently disabled without it):
 
 ```toml
 analytics_enabled = true
 
 [otel]
-metrics_exporter = "otlp-http"
+environment = "dev"
 
 [otel.metrics_exporter.otlp-http]
 endpoint = "http://localhost:4318/v1/metrics"
 protocol = "binary"
+
+[otel.exporter.otlp-http]          # log events (optional)
+endpoint = "http://localhost:4318/v1/logs"
+protocol = "binary"
+
+[otel.trace_exporter.otlp-http]    # traces (optional)
+endpoint = "http://localhost:4318/v1/traces"
+protocol = "binary"
 ```
 
-Codex needs the full `/v1/metrics` path. Its `service.name` is `codex_tui` (interactive) or `codex_exec`.
+Codex needs the full signal path in each endpoint. Its `service.name` is `codex_tui` (interactive) or `codex_exec` (`codex exec`). Verify with `codex exec "reply with ok"`; `agent="codex"` appears within a minute. Codex sends no session identifier, so concurrent Codex sessions share one series (same limitation as Pi).
+
+What Codex 0.142 actually emits (differs from older docs): tokens as histogram `codex.turn.token_usage{token_type=input|output|cached_input|reasoning_output|total}`, tool calls as `codex.tool.call{tool,success,sandbox,...}`. The gateway renames `token_type`->`type`, `tool`->`tool_name`, maps `cached_input`->`cache_read`, `reasoning_output`->`reasoning`, and drops the `total` bucket (it is the sum of the others).
 
 ### OpenCode
 

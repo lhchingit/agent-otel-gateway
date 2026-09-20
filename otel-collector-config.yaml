@@ -23,6 +23,9 @@ processors:
     metrics:
       metric:
         - 'name == "gen_ai.client.token.usage" and resource.attributes["service.name"] == "gemini-cli"'
+      datapoint:
+        # Codex also reports a "total" token bucket that is the sum of the others.
+        - 'metric.name == "codex.turn.token_usage" and attributes["token_type"] == "total"'
 
   # Normalise every agent into the ai_agent.* schema.
   # Block order matters: (1) derive sums from histograms, (2) tag agent + normalise
@@ -55,6 +58,8 @@ processors:
           # Key renames are intentionally metric-agnostic (datapoint level).
           - set(attributes["type"], attributes["gen_ai.token.type"]) where attributes["gen_ai.token.type"] != nil and attributes["type"] == nil
           - delete_key(attributes, "gen_ai.token.type")
+          - set(attributes["type"], attributes["token_type"]) where attributes["token_type"] != nil and attributes["type"] == nil
+          - delete_key(attributes, "token_type")
           - set(attributes["model"], attributes["gen_ai.request.model"]) where attributes["gen_ai.request.model"] != nil and attributes["model"] == nil
           - delete_key(attributes, "gen_ai.request.model")
           - set(attributes["tool_name"], attributes["function_name"]) where attributes["function_name"] != nil
@@ -63,10 +68,12 @@ processors:
           - delete_key(attributes, "tool.name")
           - set(attributes["tool_name"], attributes["gen_ai.tool.name"]) where attributes["gen_ai.tool.name"] != nil
           - delete_key(attributes, "gen_ai.tool.name")
+          - set(attributes["tool_name"], attributes["tool"]) where attributes["tool"] != nil
+          - delete_key(attributes, "tool")
           # --- token type value normalisation ---
-          - set(attributes["type"], "cache_read") where attributes["type"] == "cacheRead" or attributes["type"] == "cached" or attributes["type"] == "cache"
+          - set(attributes["type"], "cache_read") where attributes["type"] == "cacheRead" or attributes["type"] == "cached" or attributes["type"] == "cache" or attributes["type"] == "cached_input"
           - set(attributes["type"], "cache_write") where attributes["type"] == "cacheCreation"
-          - set(attributes["type"], "reasoning") where attributes["type"] == "thought"
+          - set(attributes["type"], "reasoning") where attributes["type"] == "thought" or attributes["type"] == "reasoning_output"
 
       - context: metric
         statements:
