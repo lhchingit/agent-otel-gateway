@@ -90,13 +90,34 @@ Codex needs the full `/v1/metrics` path. Its `service.name` is `codex_tui` (inte
 
 ### OpenCode
 
-Install `opencode-plugin-otel`, then:
+Telemetry comes from the community plugin `@devtheops/opencode-plugin-otel`. Configure it in `~/.config/opencode/opencode.json`; OpenCode installs the npm package itself on first start:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": [
+    ["@devtheops/opencode-plugin-otel", {
+      "enabled": true,
+      "endpoint": "http://localhost:4318",
+      "protocol": "http/protobuf"
+    }]
+  ]
+}
+```
+
+Equivalent environment variables: `OPENCODE_ENABLE_TELEMETRY=1`, `OPENCODE_OTLP_ENDPOINT=http://localhost:4318`, `OPENCODE_OTLP_PROTOCOL=http/protobuf` (optional `OPENCODE_OTLP_METRICS_INTERVAL=5000` for quicker feedback while testing). Metrics are cumulative by default, so idle sessions keep reporting. Verify with `opencode run "reply with ok"`; the log at `~/.local/share/opencode/log/` shows `OTel SDK initialized` and `otel: session.created`, and `agent="opencode"` appears on the dashboard within a minute.
+
+**Version caveat (as of 2026-09-20):** the plugin targets OpenCode 1.x (`opencode-ai`, peer `@opencode-ai/plugin ^1.14`). OpenCode 2.0 (`@opencode/cli`, released 2026-09-20) changed the plugin module format and rejects it with `Plugin must export a default definition with an id and an effect or setup function` — the plugin loads but emits nothing. Until the plugin is updated, run 1.x. To keep a 2.0 install untouched, run 1.x from an isolated folder with its own data directories (2.0 migrates the shared SQLite database, which 1.x then cannot open):
 
 ```bash
-export OPENCODE_ENABLE_TELEMETRY=1
-export OPENCODE_OTLP_PROTOCOL=http/protobuf
-export OPENCODE_OTLP_ENDPOINT=http://localhost:4318
+mkdir oc1 && cd oc1 && npm init -y && npm install-scripts approve opencode-ai && npm i opencode-ai@1.18.31
+node node_modules/opencode-ai/postinstall.mjs      # only needed if npm still skipped the script
+export XDG_CONFIG_HOME=/path/to/oc1-home/config XDG_DATA_HOME=/path/to/oc1-home/data XDG_CACHE_HOME=/path/to/oc1-home/cache
+cp -r ~/.config/opencode "$XDG_CONFIG_HOME/"
+./node_modules/.bin/opencode run "reply with ok"
 ```
+
+**npm 12 caveat:** npm 12 blocks package install scripts by default (`allowScripts`). Both `@opencode/cli` and `opencode-ai` need their `postinstall` to download the platform binary; if `opencode --version` says the postinstall script was not run, execute `node <package dir>/postinstall.mjs` once or approve the package with `npm install-scripts approve <pkg>` before installing.
 
 ### Pi
 
