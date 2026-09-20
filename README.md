@@ -115,7 +115,7 @@ Install (Python 3.11+; paths shown for Windows, use `bin/python` on macOS/Linux)
 ```powershell
 py -3 -m venv "$HOME\.local\opt\agy-otel"
 & "$HOME\.local\opt\agy-otel\Scripts\python.exe" -m pip install opentelemetry-sdk opentelemetry-exporter-otlp-proto-http
-Copy-Item hooks\antigravity\hook.py "$HOME\.local\opt\agy-otel\hook.py"
+Copy-Item hooks\antigravity\hook.py, hooks\antigravity\agy-otel-hook.cmd "$HOME\.local\opt\agy-otel\"
 ```
 
 `~/.config/agy-otel/env` (hooks inherit an arbitrary shell, so the endpoint lives in a file):
@@ -125,7 +125,7 @@ OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4318
 OTEL_EXPORTER_OTLP_PROTOCOL=http/protobuf
 ```
 
-Register the hook by merging `hooks/antigravity/hooks.json` into `~/.gemini/config/hooks.json` (replace `<you>` with your user name; keep any other named hook blocks you already have). Restart `agy`; `~/.gemini/antigravity-cli/cli.log` should log `loaded N named hooks`. Each event returns to the agent in well under 100 ms — the export runs in a detached child process.
+Register the hook by merging `hooks/antigravity/hooks.json` into `~/.gemini/config/hooks.json` (replace `<you>` with your user name; keep any other named hook blocks you already have). The commands point at the `agy-otel-hook.cmd` wrapper on purpose: agy runs hooks through `cmd.exe`, which mangles a command line that starts with a quoted path and contains further quotes (`"...python.exe" "...hook.py" Stop` fails with "is not recognized as an internal or external command"). On macOS/Linux point the command at `.../bin/python .../hook.py <Event>` directly. Restart `agy`; `~/.gemini/antigravity-cli/cli.log` should log `loaded N named hooks`. Each event returns to the agent in well under 100 ms — the export runs in a detached child process.
 
 Why not the reference hook as-is: it uses `os.fork()`, which does not exist on Windows (the hook silently emits nothing), and it samples quota with `agy -p /usage`, which on agy 1.2.7 starts a real agent turn (tokens and ~30 s) instead of printing quota.
 
