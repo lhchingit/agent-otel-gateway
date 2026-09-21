@@ -732,7 +732,7 @@
     {
       "type": "barchart",
       "id": 20,
-      "title": "Cost by user (range)",
+      "title": "Top 10 users by cost (range)",
       "gridPos": {
         "h": 8,
         "w": 12,
@@ -746,7 +746,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (user) (last_over_time(ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]))",
+          "expr": "topk(10, sum by (user) (last_over_time(ai_agent_cost_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range])))",
           "legendFormat": "{{user}}",
           "instant": true,
           "format": "table"
@@ -762,6 +762,17 @@
             "renameByName": {
               "Value": "USD"
             }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "USD",
+                "desc": true
+              }
+            ]
           }
         }
       ],
@@ -794,7 +805,8 @@
         "tooltip": {
           "mode": "single"
         }
-      }
+      },
+      "description": "Session cost totals summed per user over the selected range, top 10. Only agents that report cost count (Claude Code, OpenCode, Pi with @damngamerz/pi-otel)."
     },
     {
       "type": "row",
