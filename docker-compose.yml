@@ -38,6 +38,10 @@ services:
       ENDPOINT: http://otel-collector:4318
       PRICES_FILE: /pricing/prices.csv
       INTERVAL: "60"
+      # To source the table from Git / an HTTP endpoint instead of the mounted file
+      # (fetched before every push; falls back to the last good copy, then PRICES_FILE):
+      # PRICES_URL: https://raw.githubusercontent.com/<org>/<repo>/main/pricing/prices.csv
+      # PRICES_URL_HEADERS: "Authorization: token ghp_..."   # private repos
     volumes:
       - ./pricing:/pricing:ro
     depends_on:

@@ -74,7 +74,13 @@ Only Claude Code, OpenCode and one Pi extension report cost. For everything else
 
 The seeded prices are public list prices as of 2026-09 — verify them against your provider and edit the file. Free or flat-rate models get `0` so they count as priced.
 
-On Kubernetes, mount `prices.csv` from a ConfigMap into a `curlimages/curl` sidecar (same script, `ENDPOINT=http://localhost:4318` in the collector Pod, or the collector Service); ConfigMap edits propagate within about a minute and the next push picks them up.
+Where the sidecar reads the table from is up to you:
+
+- **Mounted file** (`PRICES_FILE`, default): the compose bind mount, or a ConfigMap on Kubernetes (edits propagate within about a minute).
+- **URL** (`PRICES_URL`): fetched before every push — e.g. the raw URL of `pricing/prices.csv` in your Git repo, so updating prices is a normal commit and no ConfigMap or restart is involved. `PRICES_URL_HEADERS="Authorization: token …"` for private repos. If a fetch fails the last good copy is reused, then `PRICES_FILE`.
+- **Ad-hoc push** from anywhere: `ONCE=1 ENDPOINT=https://<gateway> PRICES_FILE=prices.csv sh pricing/push-prices.sh`. The dashboard tolerates a 24 h gap (`last_over_time(...[1d])`), so a one-off push is fine for a day; keep exactly one continuous publisher, otherwise the sidecar overwrites manual pushes within a minute.
+
+On Kubernetes run the same `curlimages/curl` image and script as a sidecar in the collector Pod (`ENDPOINT=http://localhost:4318`) or as a small Deployment; choose ConfigMap or `PRICES_URL` as above.
 
 ## Point each agent at the gateway
 
