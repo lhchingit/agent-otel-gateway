@@ -91,6 +91,10 @@ Datapoint attributes deleted: `user.id`, `user.email`, `user.account_uuid`, `use
 
 Prometheus exporter: `add_metric_suffixes: true` (default), `metric_expiration: 10m`, `resource_to_telemetry_conversion: false`. `delta_to_cumulative` (`max_stale: 24h` so idle sessions do not reset, `max_streams: 10000`) sits before the exporters so delta-temporality sources still produce Prometheus counters. Component names use the current (non-alias) forms `otlp_http` and `delta_to_cumulative` because the collector image tag floats.
 
+## Estimated cost (price table)
+
+`pricing/prices.csv` (`model,type,usd_per_mtok`) is published as the gauge `llm_price_per_mtok{model,type}` by `pricing/push-prices.sh` (sh + curl, runs in the `llm-pricing` compose service every 60 s; on Kubernetes the same script as a sidecar with the CSV from a ConfigMap). Cost is computed in PromQL at query time — `tokens * on (model, type) group_left () last_over_time(llm_price_per_mtok[1d]) / 1e6` — so price edits apply retroactively and need no restart. Chosen over converting at ingest (OTTL rules generated from the CSV) because that would require a collector rollout per price change and would not re-price history. Gateway-side the gauge passes through untouched (it gets `agent="unknown"`, `user="unknown"`, which the join ignores).
+
 ## Grafana dashboard "AI Agents"
 
 Datasource `uid: prometheus` (provisioned by otel-lgtm). Variables: `user`, `agent` (both multi, All, from `label_values({__name__=~"ai_agent_.*"}, ...)`), `model` (multi, All).
@@ -100,6 +104,7 @@ Datasource `uid: prometheus` (provisioned by otel-lgtm). Variables: `user`, `age
 | Overview (stat) | tokens 24h, cost USD 24h, sessions 24h, agents reporting now. Totals use `sum(last_over_time(x[24h]))`: with per-session counters that start at 0 this is the exact session total and works from the first sample (one-shot runs like `codex exec` export exactly once). `increase()` would need two samples and under-counts the first chunk. Graphs keep `rate`/`increase`. |
 | Tokens | tokens per 5-min bucket by agent (stacked bars); by type (stacked bars); tokens by model (pie). Bucket delta is `x - ((x offset $__interval) or (x * 0))`: a series that just appeared counts from 0, so a one-shot run draws a bar; `rate()` would need two samples. |
 | Cost | cost per 5-min bucket by agent (stacked bars, same delta formula); cost by model (bar); text note: Gemini/Codex/Antigravity report no cost |
+| Estimated cost | estimated USD 24h (stat); per 5-min by agent (bars); top 10 users by estimated cost; by model; "Unpriced models" table (tokens seen, no CSV row) |
 | Activity | sessions by agent; lines added/removed by agent; tool calls top 10 (table, agent x tool_name) |
 | Antigravity | turns 24h, tool calls 24h (stat); turns and invocations over time (bars) — Antigravity's only signals |
 | Detail | table: one row per agent — tokens, cost, sessions, last seen |

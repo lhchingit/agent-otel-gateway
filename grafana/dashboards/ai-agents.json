@@ -1434,6 +1434,427 @@
     },
     {
       "type": "row",
+      "id": 107,
+      "title": "Estimated cost (tokens x pricing/prices.csv)",
+      "collapsed": false,
+      "gridPos": {
+        "h": 1,
+        "w": 24,
+        "x": 0,
+        "y": 40
+      },
+      "panels": []
+    },
+    {
+      "type": "stat",
+      "id": 23,
+      "title": "Estimated cost USD (24h)",
+      "gridPos": {
+        "h": 8,
+        "w": 4,
+        "x": 0,
+        "y": 41
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Tokens x list price from pricing/prices.csv (llm_price_per_mtok). Covers every agent that reports tokens, including those without a native cost metric.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum(last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[24h]) * on (model, type) group_left () last_over_time(llm_price_per_mtok[1d])) / 1e6"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "reduceOptions": {
+          "calcs": [
+            "lastNotNull"
+          ],
+          "fields": "",
+          "values": false
+        },
+        "colorMode": "none",
+        "graphMode": "none",
+        "textMode": "value"
+      }
+    },
+    {
+      "type": "timeseries",
+      "id": 24,
+      "title": "Estimated cost per 5 min by agent (USD)",
+      "gridPos": {
+        "h": 8,
+        "w": 8,
+        "x": 4,
+        "y": 41
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "interval": "5m",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (agent) ((ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} - ((ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} offset $__interval) or (ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"} * 0))) * on (model, type) group_left () last_over_time(llm_price_per_mtok[1d])) / 1e6",
+          "legendFormat": "{{agent}}"
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "custom": {
+            "drawStyle": "bars",
+            "lineWidth": 1,
+            "fillOpacity": 80,
+            "stacking": {
+              "mode": "normal",
+              "group": "A"
+            },
+            "showPoints": "never",
+            "gradientMode": "none"
+          }
+        },
+        "overrides": [
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "claude_code"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#3987e5"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "gemini_cli"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d95926"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "codex"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#199e70"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "opencode"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#c98500"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "pi"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#d55181"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "antigravity"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#008300"
+                }
+              }
+            ]
+          },
+          {
+            "matcher": {
+              "id": "byName",
+              "options": "unknown"
+            },
+            "properties": [
+              {
+                "id": "color",
+                "value": {
+                  "mode": "fixed",
+                  "fixedColor": "#8e8e8e"
+                }
+              }
+            ]
+          }
+        ]
+      },
+      "options": {
+        "legend": {
+          "displayMode": "list",
+          "placement": "bottom",
+          "showLegend": true
+        },
+        "tooltip": {
+          "mode": "multi",
+          "sort": "desc"
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 25,
+      "title": "Top 10 users by estimated cost (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 12,
+        "y": 41
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (user) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]) * on (model, type) group_left () last_over_time(llm_price_per_mtok[1d])) / 1e6)",
+          "legendFormat": "{{user}}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "USD"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "USD",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "user",
+        "showValue": "auto",
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "barchart",
+      "id": 26,
+      "title": "Estimated cost by model (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 6,
+        "x": 18,
+        "y": 41
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "sum by (model) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range]) * on (model, type) group_left () last_over_time(llm_price_per_mtok[1d])) / 1e6",
+          "legendFormat": "{{model}}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "USD"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "USD",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "currencyUSD",
+          "decimals": 2,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "model",
+        "showValue": "auto",
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "table",
+      "id": 27,
+      "title": "Unpriced models (tokens seen, no row in prices.csv)",
+      "gridPos": {
+        "h": 5,
+        "w": 24,
+        "x": 0,
+        "y": 49
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Add a line per token type for each model listed here to pricing/prices.csv; the sidecar re-pushes within a minute.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "(sum by (model) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range])) > 0) unless on (model) last_over_time(llm_price_per_mtok[1d])",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "model": "Model",
+              "Value": "Tokens (range)"
+            }
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0
+        },
+        "overrides": []
+      },
+      "options": {
+        "showHeader": true,
+        "cellHeight": "sm"
+      }
+    },
+    {
+      "type": "row",
       "id": 103,
       "title": "Activity",
       "collapsed": false,
@@ -1441,7 +1862,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 40
+        "y": 54
       },
       "panels": []
     },
@@ -1453,7 +1874,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 41
+        "y": 55
       },
       "datasource": {
         "type": "prometheus",
@@ -1611,7 +2032,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 41
+        "y": 55
       },
       "datasource": {
         "type": "prometheus",
@@ -1785,7 +2206,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 41
+        "y": 55
       },
       "datasource": {
         "type": "prometheus",
@@ -1846,7 +2267,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 49
+        "y": 63
       },
       "panels": []
     },
@@ -1858,7 +2279,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 64
       },
       "datasource": {
         "type": "prometheus",
@@ -1981,7 +2402,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 58
+        "y": 72
       },
       "panels": []
     },
@@ -1993,7 +2414,7 @@
         "h": 6,
         "w": 4,
         "x": 0,
-        "y": 59
+        "y": 73
       },
       "datasource": {
         "type": "prometheus",
@@ -2037,7 +2458,7 @@
         "h": 6,
         "w": 4,
         "x": 4,
-        "y": 59
+        "y": 73
       },
       "datasource": {
         "type": "prometheus",
@@ -2081,7 +2502,7 @@
         "h": 6,
         "w": 16,
         "x": 8,
-        "y": 59
+        "y": 73
       },
       "datasource": {
         "type": "prometheus",

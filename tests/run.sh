@@ -57,6 +57,9 @@ for f in tests/fixtures/*.json; do
     || die "POST $f rejected"
   ok "posted $(basename "$f")"
 done
+# the llm-pricing sidecar pushes pricing/prices.csv every 60s; force one push now so the join can be asserted
+ONCE=1 ENDPOINT="$GATEWAY" PRICES_FILE=pricing/prices.csv sh pricing/push-prices.sh >/dev/null || die "price push failed"
+ok "pushed pricing/prices.csv"
 # wait until the last-posted agent (pi) is visible on the scrape endpoint
 for _ in $(seq 1 30); do
   P="$(curl -fsS "$PROM" 2>/dev/null || true)"
@@ -119,6 +122,10 @@ expect "^ai_agent_token_usage_total${L}agent=\"codex\"${L}user=\"alice\"" "codex
 expect "^agy_turn_count_total${L}agent=\"antigravity\"${L}user=\"unknown\"" "antigravity: no header -> user=unknown"
 reject "x_not_user=" "unrelated headers are not turned into labels"
 
+# pricing gauge present with the unified type values
+expect "^llm_price_per_mtok${L}model=\"claude-opus-5\"${L}type=\"cache_read\"[^}]*\} 0.5$" "pricing: llm_price_per_mtok{claude-opus-5,cache_read} = 0.5"
+expect "^llm_price_per_mtok${L}model=\"gpt-5.5\"${L}type=\"input\"" "pricing: gpt-5.5 row present"
+
 # CCR marker survives
 expect "^ai_agent_token_usage_total${L}router=\"ccr\"" "claude_code via CCR: router label kept"
 
@@ -164,6 +171,10 @@ if grep -q '"__name__":"ai_agent_cost_usage_total"' <<<"$NAMES"; then ok "lgtm: 
 if grep -q '"__name__":"ai_agent_token_usage_total"' <<<"$NAMES"; then ok "lgtm: ai_agent_token_usage_total present"; else fail "lgtm: ai_agent_token_usage_total missing"; fi
 if grep -q '_USD' <<<"$NAMES"; then fail "lgtm: _USD unit suffix leaked"; else ok "lgtm: no _USD unit suffix"; fi
 if grep -q '_tokens_' <<<"$NAMES"; then fail "lgtm: _tokens_ unit suffix leaked"; else ok "lgtm: no _tokens_ unit suffix"; fi
+
+EST="$(curl -fsS -G "$Q" --data-urlencode 'query=sum by (agent) (last_over_time(ai_agent_token_usage_total[1h]) * on (model, type) group_left () last_over_time(llm_price_per_mtok[1d])) / 1e6' || true)"
+# value must be a positive number (real sessions on this host may also export into the test stack, so no exact figure)
+if grep -qE '"agent":"claude_code"\},"value":\[[0-9.]+,"[0-9]*\.?[0-9]*[1-9][0-9]*"' <<<"$EST"; then ok "lgtm: estimated cost join for claude_code > 0"; else fail "lgtm: estimated cost join empty or zero: $(head -c 300 <<<"$EST")"; fi
 
 echo "# 6. dashboard provisioned"
 SEARCH="$(curl -fsS "$GRAFANA/api/search?query=AI%20Agents" || true)"

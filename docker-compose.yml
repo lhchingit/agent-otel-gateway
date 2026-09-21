@@ -27,5 +27,21 @@ services:
       otel-lgtm:
         condition: service_healthy
 
+  # Pushes pricing/prices.csv to the gateway every 60s as llm_price_per_mtok{model,type};
+  # the dashboard multiplies tokens by it for estimated cost. Edit the CSV, no restart needed.
+  # On Kubernetes: same image + script as a sidecar, with the CSV mounted from a ConfigMap.
+  llm-pricing:
+    image: curlimages/curl:8.12.1
+    restart: unless-stopped
+    entrypoint: ["/bin/sh", "/pricing/push-prices.sh"]
+    environment:
+      ENDPOINT: http://otel-collector:4318
+      PRICES_FILE: /pricing/prices.csv
+      INTERVAL: "60"
+    volumes:
+      - ./pricing:/pricing:ro
+    depends_on:
+      - otel-collector
+
 volumes:
   lgtm-data:

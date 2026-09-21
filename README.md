@@ -64,6 +64,18 @@ Sessions that were already running when the label was introduced continue under 
 
 `.claude/skills/setup-agent-otel/` is a Claude Code skill that detects the agents installed on a machine, installs what is missing (Pi extension, Antigravity hook), writes every agent's OTel config with the gateway endpoint and the `x-user` header, and verifies on the gateway. Run Claude Code inside this repo and say "set up otel for my agents" (or `/setup-agent-otel`); it asks one question (your name, gateway URL, whether it may run smoke prompts) and does the rest. To use it outside this repo, copy the folder to `~/.claude/skills/`. `detect.sh` in that folder can also be run on its own for a read-only status table.
 
+## Estimated cost from a price table
+
+Only Claude Code, OpenCode and one Pi extension report cost. For everything else — and for a single consistent view — the dashboard multiplies tokens by a price table:
+
+- `pricing/prices.csv`: `model,type,usd_per_mtok` — one line per model and unified token type (`input`, `output`, `cache_read`, `cache_write`, `reasoning`). `model` must equal the `model` label exactly as the agent reports it (e.g. `claude-haiku-4-5-20251001`); the dashboard's "Unpriced models" table lists any model that has tokens but no price row.
+- `pricing/push-prices.sh`: pushes the CSV to the gateway as the gauge `llm_price_per_mtok{model,type}` every 60 s (sh + curl only). The `llm-pricing` compose service runs it.
+- The "Estimated cost" dashboard row joins in PromQL: `tokens * on (model, type) group_left () last_over_time(llm_price_per_mtok[1d]) / 1e6`. Because the conversion happens at query time, editing the CSV re-prices history too, and nothing needs a restart.
+
+The seeded prices are public list prices as of 2026-09 — verify them against your provider and edit the file. Free or flat-rate models get `0` so they count as priced.
+
+On Kubernetes, mount `prices.csv` from a ConfigMap into a `curlimages/curl` sidecar (same script, `ENDPOINT=http://localhost:4318` in the collector Pod, or the collector Service); ConfigMap edits propagate within about a minute and the next push picks them up.
+
 ## Point each agent at the gateway
 
 Replace `localhost` with the gateway host if the agent runs on another machine.
@@ -220,6 +232,7 @@ The test uses its own compose project (`agent-otel-gateway-test`), so it never t
 | `otel-collector-config.yaml` | gateway pipeline (the OTTL transform lives here) |
 | `docker-compose.yml` | gateway + otel-lgtm |
 | `grafana/dashboards/ai-agents.json` | the dashboard |
+| `pricing/prices.csv`, `pricing/push-prices.sh` | price table and the sidecar script that publishes it |
 | `grafana/provisioning/dashboards.yaml` | Grafana provisioning entry |
 | `hooks/antigravity/` | Antigravity CLI hook (`hook.py`) and `hooks.json` snippet |
 | `tests/fixtures/*.json` | sample OTLP payloads, one per agent |
