@@ -60,6 +60,10 @@ Sessions that were already running when the label was introduced continue under 
 
 `grafana/otel-lgtm` is a single-node development stack. For a team, keep the gateway and swap the backend: point `otlp_http/lgtm` at Grafana Cloud's OTLP endpoint, or at a self-hosted Prometheus/Mimir + Loki + Tempo, and import `grafana/dashboards/ai-agents.json`.
 
+## Set up a machine automatically (Claude Code skill)
+
+`.claude/skills/setup-agent-otel/` is a Claude Code skill that detects the agents installed on a machine, installs what is missing (Pi extension, Antigravity hook), writes every agent's OTel config with the gateway endpoint and the `x-user` header, and verifies on the gateway. Run Claude Code inside this repo and say "set up otel for my agents" (or `/setup-agent-otel`); it asks one question (your name, gateway URL, whether it may run smoke prompts) and does the rest. To use it outside this repo, copy the folder to `~/.claude/skills/`. `detect.sh` in that folder can also be run on its own for a read-only status table.
+
 ## Point each agent at the gateway
 
 Replace `localhost` with the gateway host if the agent runs on another machine.
