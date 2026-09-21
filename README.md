@@ -7,7 +7,7 @@ agents --OTLP :4318 (http) / :4317 (grpc)--> otel-collector-contrib --> otel-lgt
                                                     '--> :8889/metrics (Prometheus scrape endpoint)
 ```
 
-Supported: Claude Code (directly or through Claude Code Router), Gemini CLI, Codex CLI, OpenCode (`opencode-plugin-otel`), Pi (`@damngamerz/pi-otel`), Antigravity CLI (via the hook in `hooks/antigravity/`, activity only).
+Supported: Claude Code (directly or through Claude Code Router), Gemini CLI, Codex CLI, OpenCode (`opencode-plugin-otel`), Pi (`pi-otel` or `@damngamerz/pi-otel`), Antigravity CLI (via the hook in `hooks/antigravity/`, activity only).
 
 ## Run
 
@@ -24,7 +24,7 @@ Images: `otel/opentelemetry-collector-contrib:latest` (gateway) and `grafana/ote
 | Metric (Prometheus name) | Labels | Meaning |
 |---|---|---|
 | `ai_agent_token_usage_total` | `agent`, `model`, `type` = input / output / cache_read / cache_write / reasoning / tool | tokens |
-| `ai_agent_cost_usage_total` | `agent`, `model` | USD (Claude Code, OpenCode, Pi only) |
+| `ai_agent_cost_usage_total` | `agent`, `model` | USD (Claude Code, OpenCode, Pi with `@damngamerz/pi-otel` only) |
 | `ai_agent_session_count_total` | `agent` | sessions started |
 | `ai_agent_lines_of_code_count_total` | `agent`, `type` = added / removed | lines changed |
 | `ai_agent_tool_call_count_total` | `agent`, `tool_name` | tool invocations |
@@ -53,7 +53,7 @@ Per agent, the same header is set as:
 | Gemini CLI | `OTEL_EXPORTER_OTLP_HEADERS=x-user=alice` (standard OTel SDK env var) |
 | Codex CLI | `headers = { "x-user" = "alice" }` inside each `[otel.*_exporter.otlp-http]` table |
 | OpenCode | `OPENCODE_OTLP_HEADERS=x-user=alice` |
-| Pi | `OTEL_EXPORTER_OTLP_HEADERS=x-user=alice` |
+| Pi | `otel.headers` in `~/.pi/agent/settings.json` (`npm:pi-otel`) or `OTEL_EXPORTER_OTLP_HEADERS=x-user=alice` (`@damngamerz/pi-otel`) |
 | Antigravity | `OTEL_EXPORTER_OTLP_HEADERS=x-user=alice` in `~/.config/agy-otel/env` |
 
 Sessions that were already running when the label was introduced continue under their old label set until they end; totals may briefly count both.
@@ -156,11 +156,26 @@ cp -r ~/.config/opencode "$XDG_CONFIG_HOME/"
 
 ### Pi
 
-```bash
-pi install npm:@damngamerz/pi-otel
-```
+Two community extensions work with the gateway; both report `service.name=pi` and the semconv `gen_ai.client.token.usage` / `gen_ai.client.tool.calls`, which the gateway maps to `ai_agent_token_usage_total` / `ai_agent_tool_call_count_total`.
 
-The plugin defaults to `http://127.0.0.1:4318`; override with `PI_OTEL_ENDPOINT` if the gateway runs elsewhere. Keep its default `service.name` (`pi`) or the `gen_ai.system=pi` attribute — the gateway uses them to attribute the semconv `gen_ai.*` metrics to Pi.
+- `npm:pi-otel` (nikiforovall) — configured in `~/.pi/agent/settings.json`:
+
+  ```json
+  "packages": ["npm:pi-otel"],
+  "otel": {
+    "enabled": true,
+    "endpoint": "http://localhost:4318",
+    "protocol": "http/protobuf",
+    "headers": { "x-user": "alice" },
+    "serviceName": "pi",
+    "signals": { "traces": true, "metrics": true, "logs": true }
+  }
+  ```
+
+  No cost metric.
+- `npm:@damngamerz/pi-otel` — env `PI_OTEL_ENDPOINT` / `OTEL_EXPORTER_OTLP_HEADERS=x-user=alice`; additionally reports `pi.agent.cost` (mapped to `ai_agent_cost_usage_total`).
+
+Keep `serviceName` = `pi` (or the `gen_ai.system=pi` attribute): the gateway uses it to attribute the `gen_ai.*` metrics to Pi.
 
 ### Antigravity CLI
 

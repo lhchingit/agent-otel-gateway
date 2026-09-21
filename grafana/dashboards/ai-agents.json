@@ -1338,7 +1338,7 @@
       },
       "options": {
         "mode": "markdown",
-        "content": "**Cost is reported only by** Claude Code, OpenCode and Pi (`@damngamerz/pi-otel`).\n\nGemini CLI, Codex and Antigravity do not export a cost metric, so they never appear in the cost panels. Compare them by tokens instead. Antigravity exposes no token data either; its hook reports tool calls, invocations and turns only (see the Antigravity row).\n\nSeries colours are fixed per agent: claude_code blue, gemini_cli orange, codex aqua, opencode yellow, pi magenta, antigravity green.\n\nTotals (stat tiles, tables, pie) are per-session counter values via `last_over_time`, so a single export is enough to show up; graphs use `rate`/`increase` and need two samples."
+        "content": "**Cost is reported only by** Claude Code, OpenCode and Pi with `@damngamerz/pi-otel` (the `pi-otel` package reports none).\n\nGemini CLI, Codex and Antigravity do not export a cost metric, so they never appear in the cost panels. Compare them by tokens instead. Antigravity exposes no token data either; its hook reports tool calls, invocations and turns only (see the Antigravity row).\n\nSeries colours are fixed per agent: claude_code blue, gemini_cli orange, codex aqua, opencode yellow, pi magenta, antigravity green.\n\nTotals (stat tiles, tables, pie) are per-session counter values via `last_over_time`, so a single export is enough to show up; graphs use `rate`/`increase` and need two samples."
       }
     },
     {
