@@ -484,13 +484,92 @@
     },
     {
       "type": "barchart",
+      "id": 22,
+      "title": "Top 10 users by tokens (range)",
+      "gridPos": {
+        "h": 8,
+        "w": 12,
+        "x": 12,
+        "y": 6
+      },
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "description": "Session totals summed per user over the selected range, top 10.",
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "topk(10, sum by (user) (last_over_time(ai_agent_token_usage_total{user=~\"$user\",agent=~\"$agent\",model=~\"$model\"}[$__range])))",
+          "legendFormat": "{{user}}",
+          "instant": true,
+          "format": "table"
+        }
+      ],
+      "transformations": [
+        {
+          "id": "organize",
+          "options": {
+            "excludeByName": {
+              "Time": true
+            },
+            "renameByName": {
+              "Value": "Tokens"
+            }
+          }
+        },
+        {
+          "id": "sortBy",
+          "options": {
+            "sort": [
+              {
+                "field": "Tokens",
+                "desc": true
+              }
+            ]
+          }
+        }
+      ],
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "decimals": 0,
+          "color": {
+            "mode": "fixed",
+            "fixedColor": "#3987e5"
+          },
+          "custom": {
+            "lineWidth": 1,
+            "fillOpacity": 80
+          }
+        },
+        "overrides": []
+      },
+      "options": {
+        "orientation": "horizontal",
+        "xField": "user",
+        "showValue": "auto",
+        "barWidth": 0.7,
+        "groupWidth": 0.7,
+        "legend": {
+          "showLegend": false,
+          "displayMode": "list",
+          "placement": "bottom"
+        },
+        "tooltip": {
+          "mode": "single"
+        }
+      }
+    },
+    {
+      "type": "barchart",
       "id": 19,
       "title": "Tokens by user and agent (range)",
       "gridPos": {
         "h": 8,
-        "w": 6,
-        "x": 12,
-        "y": 6
+        "w": 12,
+        "x": 0,
+        "y": 14
       },
       "datasource": {
         "type": "prometheus",
@@ -656,9 +735,9 @@
       "title": "Cost by user (range)",
       "gridPos": {
         "h": 8,
-        "w": 6,
-        "x": 18,
-        "y": 6
+        "w": 12,
+        "x": 12,
+        "y": 14
       },
       "datasource": {
         "type": "prometheus",
@@ -726,7 +805,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 14
+        "y": 22
       },
       "panels": []
     },
@@ -738,7 +817,7 @@
         "h": 8,
         "w": 10,
         "x": 0,
-        "y": 15
+        "y": 23
       },
       "datasource": {
         "type": "prometheus",
@@ -897,7 +976,7 @@
         "h": 8,
         "w": 8,
         "x": 10,
-        "y": 15
+        "y": 23
       },
       "datasource": {
         "type": "prometheus",
@@ -1041,7 +1120,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 15
+        "y": 23
       },
       "datasource": {
         "type": "prometheus",
@@ -1096,7 +1175,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 23
+        "y": 31
       },
       "panels": []
     },
@@ -1108,7 +1187,7 @@
         "h": 8,
         "w": 10,
         "x": 0,
-        "y": 24
+        "y": 32
       },
       "datasource": {
         "type": "prometheus",
@@ -1267,7 +1346,7 @@
         "h": 8,
         "w": 8,
         "x": 10,
-        "y": 24
+        "y": 32
       },
       "datasource": {
         "type": "prometheus",
@@ -1334,7 +1413,7 @@
         "h": 8,
         "w": 6,
         "x": 18,
-        "y": 24
+        "y": 32
       },
       "options": {
         "mode": "markdown",
@@ -1350,7 +1429,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 32
+        "y": 40
       },
       "panels": []
     },
@@ -1362,7 +1441,7 @@
         "h": 8,
         "w": 8,
         "x": 0,
-        "y": 33
+        "y": 41
       },
       "datasource": {
         "type": "prometheus",
@@ -1520,7 +1599,7 @@
         "h": 8,
         "w": 8,
         "x": 8,
-        "y": 33
+        "y": 41
       },
       "datasource": {
         "type": "prometheus",
@@ -1694,7 +1773,7 @@
         "h": 8,
         "w": 8,
         "x": 16,
-        "y": 33
+        "y": 41
       },
       "datasource": {
         "type": "prometheus",
@@ -1755,7 +1834,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 41
+        "y": 49
       },
       "panels": []
     },
@@ -1767,7 +1846,7 @@
         "h": 8,
         "w": 24,
         "x": 0,
-        "y": 42
+        "y": 50
       },
       "datasource": {
         "type": "prometheus",
@@ -1890,7 +1969,7 @@
         "h": 1,
         "w": 24,
         "x": 0,
-        "y": 50
+        "y": 58
       },
       "panels": []
     },
@@ -1902,7 +1981,7 @@
         "h": 6,
         "w": 4,
         "x": 0,
-        "y": 51
+        "y": 59
       },
       "datasource": {
         "type": "prometheus",
@@ -1946,7 +2025,7 @@
         "h": 6,
         "w": 4,
         "x": 4,
-        "y": 51
+        "y": 59
       },
       "datasource": {
         "type": "prometheus",
@@ -1990,7 +2069,7 @@
         "h": 6,
         "w": 16,
         "x": 8,
-        "y": 51
+        "y": 59
       },
       "datasource": {
         "type": "prometheus",
