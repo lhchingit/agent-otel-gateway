@@ -2,9 +2,45 @@
 
 One OpenTelemetry Collector gateway that receives metrics from AI coding agents, normalises them into a common `ai_agent.*` schema, and shows them on a single Grafana dashboard.
 
-```
-agents --OTLP :4318 (http) / :4317 (grpc)--> otel-collector-contrib --> otel-lgtm (Prometheus + Grafana :3000)
-                                                    '--> :8889/metrics (Prometheus scrape endpoint)
+```mermaid
+flowchart LR
+    subgraph agents["AI coding agents — each sends OTLP/HTTP with header x-user=&lt;name&gt;"]
+        direction TB
+        CC["Claude Code<br/><small>claude_code.*  · cumulative · via CCR too</small>"]
+        GM["Gemini CLI<br/><small>gemini_cli.*</small>"]
+        CX["Codex CLI<br/><small>codex.* (token histogram)</small>"]
+        OC["OpenCode<br/><small>opencode.* (plugin)</small>"]
+        PI["Pi<br/><small>gen_ai.* (pi-otel)</small>"]
+        AG["Antigravity CLI<br/><small>agy.* (hook: tool calls / turns)</small>"]
+    end
+
+    subgraph gw["otel-collector-contrib — the gateway  (:4318 http / :4317 grpc)"]
+        direction TB
+        U["attributes/user<br/><small>x-user header → user label</small>"]
+        F["filter<br/><small>drop duplicates (Gemini gen_ai.*, Codex total)</small>"]
+        T["transform (OTTL)<br/><small>agent label · histogram→sum · rename to ai_agent.* ·<br/>normalise type/model/tool_name · session.id</small>"]
+        C["attributes/cardinality<br/><small>strip user.email, org, terminal…</small>"]
+        D["delta_to_cumulative → batch"]
+        U --> F --> T --> C --> D
+    end
+
+    subgraph lgtm["grafana/otel-lgtm"]
+        direction TB
+        P["Prometheus<br/><small>ai_agent_token_usage_total, ai_agent_cost_usage_total,<br/>ai_agent_session_count_total, … · llm_price_per_mtok</small>"]
+        L["Loki / Tempo<br/><small>events, spans</small>"]
+        G["Grafana :3000<br/><small>dashboard “AI Agents”:<br/>User · Agent · Model filters, top-10 users,<br/>estimated cost = tokens × price</small>"]
+        P --> G
+        L --> G
+    end
+
+    PR["llm-pricing sidecar<br/><small>pricing/prices.csv or PRICES_URL<br/>→ llm_price_per_mtok every 60 s</small>"]
+    SCR["Prometheus scrape<br/><small>:8889/metrics</small>"]
+
+    CC & GM & CX & OC & PI & AG --> U
+    PR -- OTLP/HTTP --> U
+    D -- "otlp_http (metrics · logs · traces)" --> P
+    D --> L
+    D --> SCR
 ```
 
 Supported: Claude Code (directly or through Claude Code Router), Gemini CLI, Codex CLI, OpenCode (`opencode-plugin-otel`), Pi (`pi-otel` or `@damngamerz/pi-otel`), Antigravity CLI (via the hook in `hooks/antigravity/`, activity only).
