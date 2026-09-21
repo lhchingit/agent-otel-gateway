@@ -224,3 +224,7 @@ The test uses its own compose project (`agent-otel-gateway-test`), so it never t
 | `hooks/antigravity/` | Antigravity CLI hook (`hook.py`) and `hooks.json` snippet |
 | `tests/fixtures/*.json` | sample OTLP payloads, one per agent |
 | `docs/superpowers/specs/` | design spec |
+
+## License
+
+MIT — see [LICENSE](LICENSE).
